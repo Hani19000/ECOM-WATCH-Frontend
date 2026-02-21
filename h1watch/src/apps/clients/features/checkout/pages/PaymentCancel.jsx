@@ -2,21 +2,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, RefreshCw } from 'lucide-react';
 import { useCartRestore } from '../../cart/hooks/useCartRestore'
 import toast from 'react-hot-toast';
+import SEOHead from '../../../../../shared/SEO/SEOHead';
 
-/**
- * Page d'annulation de paiement avec restauration automatique du panier.
- *
- * Améliorations par rapport à la version précédente :
- * - Restauration automatique du panier au chargement de la page
- * - Feedback visuel pendant la restauration
- * - Message personnalisé selon le nombre d'articles restaurés
- * - Suppression de l'ancien message "vous devrez reconstituer votre panier"
- *
- * Architecture : Presentation Layer
- * - Délègue la logique de restauration au hook useCartRestore
- * - Affiche les états (loading, success, empty) de manière claire
- * - Guide l'utilisateur vers les prochaines actions
- */
+
 const PaymentCancel = () => {
     const { isRestoring, restoredCount } = useCartRestore({
         autoRestore: true,
@@ -24,6 +12,11 @@ const PaymentCancel = () => {
             toast.info(`Panier restauré : ${items.length} articles`);
         }
     });
+
+    <SEOHead
+        title="Paiement annulé | ECOM-WATCH"
+        noIndex={true}
+    />
 
     return (
         <div className="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center px-4 py-16">
@@ -48,9 +41,8 @@ const PaymentCancel = () => {
     );
 };
 
-/* ================================================================== */
-/* SOUS-COMPOSANTS D'ÉTAT                                              */
-/* ================================================================== */
+
+/* SOUS-COMPOSANTS D'ÉTAT */
 
 /**
  * État de restauration - affiché pendant la récupération du backup.

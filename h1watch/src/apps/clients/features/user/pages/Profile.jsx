@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuthStore } from '../../../../../shared/auth/hooks/useAuthStore';
 import { useProfile } from '../hooks/useProfile';
 import { useGuestOrders } from '../../orders/hooks/useGuestOrders';
+import SEOHead from '../../../../../shared/SEO/SEOHead';
 
 // UI Components
 import ProfileForm from '../components/ProfileDetail';
@@ -70,6 +71,11 @@ const ProfilePage = () => {
     ] : [
         { id: 'orders', label: 'Suivre mes achats' }
     ];
+
+    <SEOHead
+        title="Mon compte | ECOM-WATCH"
+        noIndex={true}
+    />
 
     return (
         <div className="min-h-screen bg-white pt-32 pb-20">

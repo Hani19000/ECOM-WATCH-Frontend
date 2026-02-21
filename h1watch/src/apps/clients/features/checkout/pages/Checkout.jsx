@@ -3,6 +3,7 @@ import { ArrowLeft, Lock, Package } from 'lucide-react';
 import { useCheckout } from '../hooks/useCheckout';
 import CheckoutForm from '../components/CheckoutForm';
 import OrderSummary from '../components/OrderSummary';
+import SEOHead from '../../../../../shared/SEO/SEOHead';
 
 /**
  * Orchestrateur principal de la page Checkout.
@@ -27,6 +28,12 @@ const CheckoutPage = () => {
             </div>
         );
     }
+
+    <SEOHead
+        title="Finaliser ma commande | ECOM-WATCH"
+        description="Finalisez votre commande en toute sécurité."
+        noIndex={true}
+    />
 
     return (
         <div className="min-h-screen bg-[#FDFBF7] py-12 px-4 sm:px-6 lg:px-8">

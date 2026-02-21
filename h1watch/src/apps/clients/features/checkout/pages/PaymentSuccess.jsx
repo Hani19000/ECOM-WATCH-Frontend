@@ -5,6 +5,7 @@ import { usePaymentResult } from '../hooks/usePaymentResult';
 import { useCart } from '../../cart/hooks/useCart';
 import { CartBackupService } from '../../cart/api/Cartbackup.service';
 import { GuestOrderService } from '../../orders/api/GuestOrder.service';
+import SEOHead from '../../../../../shared/SEO/SEOHead';
 
 /**
  * Page de confirmation de commande (UI Pure + Orchestration de nettoyage).
@@ -23,6 +24,11 @@ const PaymentSuccess = () => {
         }
     }, [status, orderInfo, clearCart]);
 
+    <SEOHead
+        title="Commande confirmée | ECOM-WATCH"
+        noIndex={true}
+    />
+
     return (
         <div className="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center px-4 py-16">
             {status === 'loading' && <LoadingState />}
@@ -32,9 +38,7 @@ const PaymentSuccess = () => {
     );
 };
 
-/* ================================================================== */
-/* DUMB COMPONENTS (UI States)                                        */
-/* ================================================================== */
+/* DUMB COMPONENTS (UI States) */
 
 const LoadingState = () => (
     <div className="flex flex-col items-center gap-8 animate-in fade-in duration-700">

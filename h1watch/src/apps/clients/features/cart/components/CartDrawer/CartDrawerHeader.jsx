@@ -1,24 +1,31 @@
 import { X, ShoppingBag } from "lucide-react";
 
-export const CartDrawerHeader = ({ itemCount, onClose }) => (
-    <div className="pt-14 pb-6 px-6 border-b border-gray-50 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gray-900 rounded-full flex items-center justify-center shadow-lg shadow-gray-200">
-                <ShoppingBag className="w-4 h-4 text-white" />
+/**
+ * Composant d'en-tête du tiroir panier.
+ * Affiche le titre et le compteur d'articles.
+ */
+export const CartDrawerHeader = ({ itemCount, onClose }) => {
+    return (
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-white">
+            <div className="flex items-center gap-3">
+                <ShoppingBag className="w-5 h-5 text-gray-900" />
+                <div className="flex flex-col">
+                    <h2 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+                        Mon Panier
+                    </h2>
+                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                        {itemCount} Sélection{itemCount !== 1 ? 's' : ''}
+                    </p>
+                </div>
             </div>
-            <div>
-                <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900">Mon Panier</h2>
-                <p className="text-[9px] text-[#ADA996] font-bold uppercase tracking-widest">
-                    {itemCount} Sélection{itemCount > 1 ? 's' : ''}
-                </p>
-            </div>
+
+            <button
+                onClick={onClose}
+                aria-label="Fermer le panier"
+                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors rounded-full"
+            >
+                <X className="w-5 h-5" />
+            </button>
         </div>
-        <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-50 rounded-full transition-all active:scale-90"
-            aria-label="Fermer le panier"
-        >
-            <X className="w-5 h-5 text-gray-400" />
-        </button>
-    </div>
-);
+    );
+};
