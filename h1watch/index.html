@@ -1,10 +1,112 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ECOM-WATCH</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- SEO -->
+    <title>ECOM-WATCH – Montres de Prestige | Haute Horlogerie</title>
+    <meta
+      name="description"
+      content="Découvrez notre collection exclusive de montres de prestige. Haute horlogerie, éditions limitées, authenticité certifiée et livraison sécurisée en France et en Europe."
+    />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1"
+    />
+    <link rel="canonical" href="https://ecom-watch.fr/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ECOM-WATCH" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:url" content="https://ecom-watch.fr/" />
+    <meta
+      property="og:title"
+      content="ECOM-WATCH – Montres de Prestige | Haute Horlogerie"
+    />
+    <meta
+      property="og:description"
+      content="Collection exclusive de montres de prestige. Authenticité certifiée, garantie 2 ans, livraison sécurisée."
+    />
+    <meta
+      property="og:image"
+      content="https://ecom-watch.fr/images/og-cover.jpg"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="ECOM-WATCH – Collection Haute Horlogerie"
+    />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ECOM-WATCH – Montres de Prestige" />
+    <meta
+      name="twitter:description"
+      content="Collection exclusive de montres de prestige. Authenticité certifiée, garantie 2 ans."
+    />
+    <meta
+      name="twitter:image"
+      content="https://ecom-watch.fr/images/og-cover.jpg"
+    />
+
+    <!-- Favicons & PWA -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#1A1A19" />
+
+    <!-- Performance : preconnect aux domaines critiques -->
+    <link rel="preconnect" href="https://ecom-watch.onrender.com" crossorigin />
+    <link rel="dns-prefetch" href="https://ecom-watch.onrender.com" />
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://js.stripe.com" />
+
+    <!-- Structured Data : boutique + moteur de recherche interne -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "OnlineStore",
+        "name": "ECOM-WATCH",
+        "url": "https://ecom-watch.fr",
+        "description": "Boutique de montres de luxe et haute horlogerie en ligne",
+        "currenciesAccepted": "EUR",
+        "paymentAccepted": "Visa, Mastercard, American Express",
+        "priceRange": "€€€",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://ecom-watch.fr/images/logo.png"
+        },
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Collection Montres de Prestige",
+          "url": "https://ecom-watch.fr/catalogue"
+        }
+      }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ECOM-WATCH",
+        "url": "https://ecom-watch.fr",
+        "inLanguage": "fr-FR",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://ecom-watch.fr/catalogue?search={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
