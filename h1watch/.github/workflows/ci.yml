@@ -1,0 +1,186 @@
+# ============================================================
+# PIPELINE CI — INTÉGRATION CONTINUE (Validation Pull Request)
+# Déclenchement : à chaque PR vers `main` ou `develop`
+# Stack : React + Vite + Tailwind v4 | Hébergement : Vercel
+# ============================================================
+
+name: "CI — Validation Frontend"
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "h1watch/**"
+      - ".github/workflows/ci.yml"
+
+# Annule les runs précédents sur la même PR (économie de minutes GitHub)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ════════════════════════════════════════════════════════════
+  # JOB 1 : AUDIT DE SÉCURITÉ
+  # ════════════════════════════════════════════════════════════
+  audit-securite:
+    name: "Audit de sécurité (npm audit)"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: h1watch
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: h1watch/package-lock.json
+
+      - name: "Installation des dépendances"
+        run: npm ci --prefer-offline
+
+      - name: "Scan de vulnérabilités"
+        # continue-on-error : le pipeline continue même si des vulnérabilités sont trouvées
+        # On veut être informé, pas bloqué sur chaque PR
+        run: npm audit --audit-level=high
+        continue-on-error: true
+        id: audit-result
+
+      - name: "Archivage du rapport d'audit"
+        run: npm audit --json > audit-report.json || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-rapport
+          path: h1watch/audit-report.json
+          retention-days: 30
+
+  # ════════════════════════════════════════════════════════════
+  # JOB 2 : LINTING
+  # ════════════════════════════════════════════════════════════
+  linting:
+    name: "Linting ESLint"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: h1watch
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: h1watch/package-lock.json
+
+      - run: npm ci --prefer-offline
+
+      - name: "Exécution ESLint"
+        run: npm run lint
+
+  # ════════════════════════════════════════════════════════════
+  # JOB 3 : BUILD DE VALIDATION (Vite + Tailwind v4)
+  # Vérifie que la syntaxe @theme ne casse pas la compilation
+  # ════════════════════════════════════════════════════════════
+  build-validation:
+    name: "Build Vite + Tailwind v4"
+    runs-on: ubuntu-latest
+    needs: [linting]
+    defaults:
+      run:
+        working-directory: h1watch
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: h1watch/package-lock.json
+
+      - run: npm ci --prefer-offline
+
+      - name: "🔧 Injection des variables d'environnement"
+        run: |
+          echo "VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}" > .env
+          echo "VITE_STRIPE_PUBLIC_KEY=${{ secrets.VITE_STRIPE_PUBLIC_KEY }}" >> .env
+          echo "VITE_APP_BASE_URL=${{ secrets.VITE_APP_BASE_URL }}" >> .env
+
+      - name: "npm run build"
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: "Rapport de taille du bundle"
+        run: |
+          echo "=== Taille totale du dossier dist/ ==="
+          du -sh dist/
+          echo ""
+          echo "=== Top 5 fichiers les plus lourds ==="
+          find dist/assets -type f | xargs ls -lh 2>/dev/null | sort -k5 -rh | head -5
+
+  # ════════════════════════════════════════════════════════════
+  # JOB 4 : COMMENTAIRE RÉSUMÉ SUR LA PR
+  # ════════════════════════════════════════════════════════════
+  rapport-pr:
+    name: "Résumé sur la PR"
+    runs-on: ubuntu-latest
+    needs: [audit-securite, linting, build-validation]
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: "Poster le résumé"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const jobs = {
+              audit:  '${{ needs.audit-securite.result }}',
+              lint:   '${{ needs.linting.result }}',
+              build:  '${{ needs.build-validation.result }}'
+            };
+            const icon = (s) => s === 'success' ? '✅' : s === 'skipped' ? '⏭️' : '❌';
+            const allOk = Object.values(jobs).every(s => s === 'success');
+
+            const body = `## 🔍 Résultats CI — ECOM-WATCH
+
+            | Étape | Résultat |
+            |-------|----------|
+            | Audit sécurité | ${icon(jobs.audit)} ${jobs.audit} |
+            | Linting ESLint | ${icon(jobs.lint)} ${jobs.lint} |
+            | Build Vite + Tailwind v4 | ${icon(jobs.build)} ${jobs.build} |
+
+            **Commit :** \`${{ github.sha }}\` | **Branche :** \`${{ github.head_ref }}\`
+
+            ${allOk
+              ? '> **Tous les contrôles passés. PR prête à être mergée.**'
+              : '> **Des contrôles ont échoué. À corriger avant de merger.**'}
+            `;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            const existing = comments.find(c => c.body.includes('Résultats CI — ECOM-WATCH'));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number, body
+              });
+            }
