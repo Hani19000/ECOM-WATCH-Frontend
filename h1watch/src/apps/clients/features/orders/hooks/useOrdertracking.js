@@ -15,7 +15,7 @@ import {
 } from '../../../../../core/constants/orderStatus';
 
 const POLLING_INTERVAL = 30000; // 30 secondes
-const MAX_POLLING_ERRORS = 100; // Arrêter après 3 erreurs consécutives
+const MAX_POLLING_ERRORS = 3; // Arrêter après 3 erreurs consécutives
 
 export const useOrderTracking = (initialOrderId = null) => {
     const { isAuthenticated } = useAuthStore();
