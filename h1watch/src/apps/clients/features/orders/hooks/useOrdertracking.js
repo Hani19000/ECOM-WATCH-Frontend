@@ -159,29 +159,16 @@ export const useOrderTracking = (initialOrderId = null) => {
      */
     useEffect(() => {
         if (initialOrderId) {
-            // 1. On vérifie d'abord si c'est une commande stockée localement (Guest)
-            // On cherche par ID (UUID) OU par orderNumber (ORD-...)
             const localOrders = GuestOrderService.getOrders();
             const localOrder = localOrders.find(
                 (o) => o.id === initialOrderId || o.orderNumber === initialOrderId
             );
 
             if (localOrder && localOrder.email) {
-                // C'est une commande Guest ! On utilise le numéro et l'email.
                 trackGuestOrder(localOrder.orderNumber, localOrder.email);
             } else if (isAuthenticated) {
-                // 2. Ce n'est pas une commande Guest. Si on est connecté, on tente la route Auth.
-                // SÉCURITÉ : La route Auth (/:orderId) exige un UUID.
-                // Si initialOrderId ressemble à "ORD-...", on ne l'appelle pas pour éviter l'erreur 400.
-                const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(initialOrderId);
-
-                if (isUUID) {
-                    trackAuthenticatedOrder(initialOrderId);
-                } else {
-                    setError("Numéro de commande invalide pour ce compte.");
-                }
+                trackAuthenticatedOrder(initialOrderId);
             } else {
-                // 3. Ni Guest (pas d'email local), ni connecté. Impossible de charger.
                 setError("Veuillez vous connecter ou utiliser le formulaire de suivi.");
             }
         }
