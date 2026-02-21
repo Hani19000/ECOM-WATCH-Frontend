@@ -39,8 +39,8 @@ const Home = () => {
             <SEOHead
                 title="ECOM-WATCH – Montres de Prestige | Haute Horlogerie"
                 description="Découvrez notre sélection exclusive de montres de prestige. Haute horlogerie, éditions limitées, authenticité certifiée. Livraison sécurisée en France et en Europe."
-                canonical="https://ecom-watch.fr/"
-                image="https://ecom-watch.fr/images/og-cover.jpg"
+                canonical="https://ecom-watch-frontend.vercel.app/"
+                image="https://ecom-watch-frontend.vercel.app/images/og-cover.jpg"
                 imageAlt="Collection ECOM-WATCH – Montres de Haute Horlogerie"
                 type="website"
                 structuredData={buildHomeSchema(products)}

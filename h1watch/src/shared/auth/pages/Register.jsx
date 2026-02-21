@@ -6,7 +6,7 @@ const Register = () => {
     <SEOHead
         title="Créer un compte | ECOM-WATCH"
         description="Créez votre compte ECOM-WATCH pour accéder à votre historique de commandes et profiter d'une expérience personnalisée."
-        canonical="https://ecom-watch.fr/register"
+        canonical="https://ecom-watch-frontend.vercel.app/register"
     />
 
     return (

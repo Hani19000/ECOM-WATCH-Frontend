@@ -6,7 +6,7 @@ const Login = () => {
     <SEOHead
         title="Connexion | ECOM-WATCH"
         description="Connectez-vous à votre espace client ECOM-WATCH."
-        canonical="https://ecom-watch.fr/login"
+        canonical="https://ecom-watch-frontend.vercel.app/login"
     />
 
     return (

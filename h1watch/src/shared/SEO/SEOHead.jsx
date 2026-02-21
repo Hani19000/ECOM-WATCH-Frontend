@@ -16,8 +16,8 @@ import { Helmet } from 'react-helmet-async';
  * <SEOHead
  *   title="Nom du produit - ECOM-WATCH"
  *   description="Description courte du produit..."
- *   canonical="https://ecom-watch.fr/product/mon-produit"
- *   image="https://cdn.ecom-watch.fr/products/mon-produit.jpg"
+ *   canonical="https://ecom-watch-frontend.vercel.app/product/mon-produit"
+ *   image="https://ecom-watch-frontend.vercel.app/products/mon-produit.jpg"
  *   type="product"
  *   structuredData={productSchema}
  * />
@@ -46,8 +46,8 @@ const SEOHead = ({
     locale = 'fr_FR',
 }) => {
     const SITE_NAME = 'ECOM-WATCH';
-    const DEFAULT_IMAGE = 'https://ecom-watch.fr/images/og-cover.jpg';
-    const BASE_URL = 'https://ecom-watch.fr';
+    const DEFAULT_IMAGE = 'https://ecom-watch-frontend.vercel.app/images/og-cover.jpg';
+    const BASE_URL = 'https://ecom-watch-frontend.vercel.app';
 
     const resolvedImage = image || DEFAULT_IMAGE;
     const resolvedImageAlt = imageAlt || `${title} – ${SITE_NAME}`;
