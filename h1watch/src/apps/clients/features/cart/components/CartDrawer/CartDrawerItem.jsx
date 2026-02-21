@@ -19,14 +19,17 @@ export const CartDrawerItem = ({ item, onUpdate, onRemove }) => {
                         </h4>
                         <button
                             onClick={() => onRemove(item.variantId)}
+                            aria-label={`Retirer ${item.name} du panier`}
                             className="text-gray-300 hover:text-red-500 transition-colors shrink-0"
                         >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                         </button>
                     </div>
-                    <p className="text-[9px] text-[#ADA996] uppercase font-black tracking-widest mt-1.5">
-                        {item.color} {item.size && <span className="mx-1 opacity-30">|</span>} {item.size}
+
+                    <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest mt-1.5">
+                        {item.color}{item.size && <span className="mx-1 opacity-30" aria-hidden="true">|</span>}{item.size}
                     </p>
+
                     {item.isOutOfStock && (
                         <span className="inline-block mt-2 text-[7px] font-black uppercase tracking-[0.2em] text-red-500 bg-red-50 px-2 py-1 rounded">
                             Indisponible
@@ -35,21 +38,34 @@ export const CartDrawerItem = ({ item, onUpdate, onRemove }) => {
                 </div>
 
                 <div className="flex justify-between items-center mt-4">
-                    <div className="flex items-center border border-gray-100 rounded-full p-1 bg-gray-50/50 shadow-inner">
+                    <div
+                        className="flex items-center border border-gray-100 rounded-full p-1 bg-gray-50/50 shadow-inner"
+                        role="group"
+                        aria-label={`Quantité de ${item.name}`}
+                    >
                         <button
                             onClick={() => onUpdate(item.variantId, -1)}
+                            aria-label={`Diminuer la quantité de ${item.name}`}
                             className="w-7 h-7 flex items-center justify-center hover:bg-white rounded-full transition-all active:scale-90"
                         >
-                            <Minus className="w-3 h-3" />
+                            <Minus className="w-3 h-3" aria-hidden="true" />
                         </button>
-                        <span className="px-2 text-[10px] font-black w-7 text-center">{item.quantity}</span>
+                        <span
+                            className="px-2 text-[10px] font-black w-7 text-center"
+                            aria-live="polite"
+                            aria-label={`Quantité : ${item.quantity}`}
+                        >
+                            {item.quantity}
+                        </span>
                         <button
                             onClick={() => onUpdate(item.variantId, 1)}
+                            aria-label={`Augmenter la quantité de ${item.name}`}
                             className="w-7 h-7 flex items-center justify-center hover:bg-white rounded-full transition-all active:scale-90"
                         >
-                            <Plus className="w-3 h-3" />
+                            <Plus className="w-3 h-3" aria-hidden="true" />
                         </button>
                     </div>
+
                     <div className="flex flex-col items-end gap-0.5">
                         <span className="font-black text-xs tracking-tighter text-[#b4945d]">
                             {(item.price * item.quantity).toLocaleString()}€

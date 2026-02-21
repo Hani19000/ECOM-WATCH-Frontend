@@ -1,19 +1,26 @@
 import { Link } from "react-router-dom";
 import { FOOTER_NAV, FOOTER_LEGAL, PAYMENT_METHODS } from "./Footer.constants";
 
-// Colonne de liens avec titre de section
+/**
+ * ACCESSIBILITÉ :
+ * - FooterNavColumn : h4 remplacé par p (évite heading hors-séquence — Lighthouse #1)
+ * - Copyright : text-gray-500 → text-gray-300 (ratio 10:1 sur fond #1A1A19 — Lighthouse #2)
+ * - Liens légaux / nav : aria-label sur les <nav> pour les lecteurs d'écran
+ */
+
 const FooterNavColumn = ({ title, links }) => (
     <div className="flex flex-col gap-5">
-        <h4 className="text-[9px] font-bold uppercase tracking-[0.35em] text-[#ADA996]">
+        {/* AVANT : <h4> orphelin sans h2/h3 parent → Lighthouse "Heading order"
+            APRÈS : <p> avec même style visuel, rôle sémantique neutre */}
+        <p className="text-[9px] font-bold uppercase tracking-[0.35em] text-[#ADA996]">
             {title}
-        </h4>
-        <nav className="flex flex-col gap-3">
+        </p>
+        <nav aria-label={title}>
             {links.map(({ label, to }) => (
                 <Link
                     key={label}
                     to={to}
-                    // Les liens étaient corrects, mais on s'assure qu'ils restent bien lisibles
-                    className="text-[11px] text-gray-400 uppercase tracking-[0.18em] font-light
+                    className="block mb-3 text-[11px] text-gray-400 uppercase tracking-[0.18em] font-light
                                hover:text-white transition-colors duration-300"
                 >
                     {label}
@@ -23,7 +30,6 @@ const FooterNavColumn = ({ title, links }) => (
     </div>
 );
 
-// Séparateur décoratif cohérent avec le style du site
 const Divider = () => (
     <div className="w-full h-px bg-gradient-to-r from-transparent via-[#ADA996]/20 to-transparent" />
 );
@@ -40,7 +46,8 @@ const Footer = () => (
                     { icon: '◇', label: 'Garantie 2 Ans' },
                 ].map(({ icon, label }) => (
                     <div key={label} className="flex items-center justify-center gap-3">
-                        <span className="text-[#ADA996] text-sm">{icon}</span>
+                        {/* aria-hidden : icône décorative, texte adjacent suffit */}
+                        <span className="text-[#ADA996] text-sm" aria-hidden="true">{icon}</span>
                         <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-300">
                             {label}
                         </span>
@@ -54,12 +61,12 @@ const Footer = () => (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
 
                 <div className="md:col-span-4 flex flex-col gap-7">
-                    <Link to="/" className="flex flex-col gap-2 group w-fit">
+                    <Link to="/" className="flex flex-col gap-2 group w-fit" aria-label="ECOM-WATCH — Accueil">
                         <span className="text-xl font-light tracking-[0.45em] text-white
                                          group-hover:text-[#ADA996] transition-colors duration-500">
-                            ECOM<span className="text-[#ADA996]">-</span>WATCH.
+                            ECOM<span className="text-[#ADA996]" aria-hidden="true">-</span>WATCH.
                         </span>
-                        <div className="h-px w-8 bg-[#ADA996]/50 group-hover:w-full transition-all duration-500" />
+                        <div className="h-px w-8 bg-[#ADA996]/50 group-hover:w-full transition-all duration-500" aria-hidden="true" />
                         <span className="text-[8px] font-bold uppercase tracking-[0.35em] text-[#ADA996]/90 mt-0.5">
                             Manufacture de Prestige
                         </span>
@@ -69,7 +76,6 @@ const Footer = () => (
                         L'art de la haute horlogerie — chaque pièce, une œuvre d'exception.
                     </p>
 
-                    {/* Localisation */}
                     <p className="text-[9px] text-[#ADA996]/80 tracking-[0.3em] uppercase font-medium">
                         Geneva · Paris · London
                     </p>
@@ -89,7 +95,7 @@ const Footer = () => (
                 <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-6">
 
                     {/* Liens légaux */}
-                    <nav className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2">
+                    <nav aria-label="Liens légaux" className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2">
                         {FOOTER_LEGAL.map(({ label, to }) => (
                             <Link
                                 key={label}
@@ -119,7 +125,9 @@ const Footer = () => (
                     </div>
                 </div>
 
-                <p className="mt-6 text-center text-[9px] text-gray-500 uppercase tracking-[0.3em]">
+                {/* AVANT : text-gray-500 → ratio ~3.8:1 sur fond sombre (ÉCHEC WCAG AA)
+                    APRÈS : text-gray-300 → ratio ~10:1 (CONFORME) */}
+                <p className="mt-6 text-center text-[9px] text-gray-300 uppercase tracking-[0.3em]">
                     © {new Date().getFullYear()} Ecom-Watch. Tous droits réservés.
                 </p>
             </div>
