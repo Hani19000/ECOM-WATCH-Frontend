@@ -48,9 +48,10 @@ const ProductCard = ({ product, persistedVariant, onVariantChange }) => {
 
             <div className="p-7 flex flex-col gap-6">
                 <div className="space-y-2">
-                    <h3 className="text-xl font-semibold text-gray-900 tracking-tight group-hover:text-[#ADA996] transition-colors duration-500">
+
+                    <p className="text-xl font-semibold text-gray-900 tracking-tight group-hover:text-[#ADA996] transition-colors duration-500">
                         {name}
-                    </h3>
+                    </p>
                     <p className="text-[10px] text-gray-400 uppercase tracking-[0.25em] font-medium">
                         {description || "Collection Prestige"}
                     </p>

@@ -43,9 +43,9 @@ const CatalogueProductCard = ({ product, persistedVariant, onVariantChange }) =>
             {/* CONTENU */}
             <div className="p-5 md:p-6 flex flex-col gap-4">
                 <div className="space-y-1.5">
-                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight line-clamp-1 group-hover:text-[#ADA996] transition-colors duration-500">
+                    <p className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight line-clamp-1 group-hover:text-[#ADA996] transition-colors duration-500">
                         {name}
-                    </h3>
+                    </p>
                     <p className="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-[0.2em] font-medium line-clamp-1">
                         {description || "Collection Prestige"}
                     </p>
