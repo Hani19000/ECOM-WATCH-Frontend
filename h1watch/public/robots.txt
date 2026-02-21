@@ -1,70 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset
-  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-  xsi:schemaLocation="
-    http://www.sitemaps.org/schemas/sitemap/0.9
-    http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
->
+User-agent: *
+Allow: /
+Crawl-delay: 2
 
-  <!-- ═══════════════════════════════════════════════════ -->
-  <!-- PAGES PRINCIPALES                                   -->
-  <!-- ═══════════════════════════════════════════════════ -->
+Disallow: /checkout/
+Disallow: /checkout/success
+Disallow: /checkout/cancel
+Disallow: /profile
+Disallow: /track-order
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /admin/
+Disallow: /api/
+Disallow: /*?minPrice=
+Disallow: /*?maxPrice=
 
-  <url>
-    <loc>https://ecom-watch.fr/</loc>
-    <lastmod>2026-02-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-    <image:image>
-      <image:loc>https://ecom-watch.fr/images/featured.webp</image:loc>
-      <image:title>ECOM-WATCH – Collection Haute Horlogerie</image:title>
-      <image:caption>Montres de prestige – Sélection exclusive ECOM-WATCH</image:caption>
-    </image:image>
-  </url>
+Allow: /assets/
 
-  <!-- ═══════════════════════════════════════════════════ -->
-  <!-- CATALOGUE & CATÉGORIES                              -->
-  <!-- ═══════════════════════════════════════════════════ -->
-
-  <url>
-    <loc>https://ecom-watch.fr/catalogue</loc>
-    <lastmod>2026-02-01</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://ecom-watch.fr/catalogue?category=nouveautes</loc>
-    <lastmod>2026-02-01</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://ecom-watch.fr/catalogue?category=limitees</loc>
-    <lastmod>2026-02-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- ═══════════════════════════════════════════════════ -->
-  <!-- AUTH (indexables pour acquisition)                  -->
-  <!-- ═══════════════════════════════════════════════════ -->
-
-  <url>
-    <loc>https://ecom-watch.fr/login</loc>
-    <lastmod>2026-01-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-
-  <url>
-    <loc>https://ecom-watch.fr/register</loc>
-    <lastmod>2026-01-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
-  </url>
-
-</urlset>
+Sitemap: https://ecom-watch.fr/sitemap.xml
+Sitemap: https://ecom-watch.fr/sitemap-products.xml
