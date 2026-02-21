@@ -1,0 +1,79 @@
+import { Link } from 'react-router-dom';
+import { ArrowLeft, Lock, Package } from 'lucide-react';
+import { useCheckout } from '../hooks/useCheckout';
+import CheckoutForm from '../components/CheckoutForm';
+import OrderSummary from '../components/OrderSummary';
+
+/**
+ * Orchestrateur principal de la page Checkout.
+ * Lie l'état complexe (useCheckout) aux composants de présentation (CheckoutForm, OrderSummary).
+ */
+const CheckoutPage = () => {
+    const {
+        formData, cart, loading, loadingPricing, pricing,
+        shippingOptions, selectedShippingMethod,
+        handleInputChange, handleShippingMethodChange, handleSubmit
+    } = useCheckout();
+
+    // Protection anti-commande vide
+    if (cart.length === 0) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#FDFBF7]">
+                <Package className="w-16 h-16 text-gray-300 mb-4" />
+                <h2 className="text-2xl font-serif mb-4">Votre panier est vide</h2>
+                <Link to="/catalogue" className="text-[#ADA996] underline underline-offset-4 hover:text-black transition-colors">
+                    Retourner à la boutique
+                </Link>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-[#FDFBF7] py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+
+                {/* Header Navigation */}
+                <div className="mb-10 flex items-center justify-between">
+                    <Link to="/home" className="flex items-center text-gray-500 hover:text-black transition-colors">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        <span className="text-sm uppercase tracking-wider">Retour à l'accueil</span>
+                    </Link>
+                    <div className="flex items-center text-[#ADA996] gap-2">
+                        <Lock className="w-4 h-4" />
+                        <span className="text-xs font-medium uppercase tracking-widest">Paiement Sécurisé</span>
+                    </div>
+                </div>
+
+                <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 xl:gap-x-16 items-start">
+
+                    {/* COLONNE GAUCHE : Formulaire */}
+                    <div className="lg:col-span-7">
+                        <CheckoutForm
+                            id="checkout-form"
+                            formData={formData}
+                            handleInputChange={handleInputChange}
+                            shippingOptions={shippingOptions}
+                            selectedShippingMethod={selectedShippingMethod}
+                            onShippingMethodChange={handleShippingMethodChange}
+                            onSubmit={handleSubmit}
+                        />
+                    </div>
+
+                    {/* COLONNE DROITE : Résumé de commande avec pricing détaillé */}
+                    <div className="lg:col-span-5 mt-10 lg:mt-0">
+                        <OrderSummary
+                            formId="checkout-form"
+                            cart={cart}
+                            pricing={pricing}
+                            loading={loading}
+                            loadingPricing={loadingPricing}
+                        />
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default CheckoutPage;

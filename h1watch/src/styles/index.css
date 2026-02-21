@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-dark-bg: #0f172a;
+  --color-dark-card: #1e293b;
+  --color-dark-border: #334155;
+}
+
+@keyframes soft-glow {
+  0% {
+    box-shadow: 0 0 0px rgba(180, 148, 93, 0);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(180, 148, 93, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0px rgba(180, 148, 93, 0);
+  }
+}
+
+.animate-glow {
+  animation: soft-glow 4s infinite ease-in-out;
+}
