@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from './navbar/NavBar';
-import Footer from './Footer';
+import Footer from './footer'
 import CartDrawer from '../../../apps/clients/features/cart/components/CartDrawer/index';
 import ScrollToTop from '../../../core/utils/ScrollToTop';
 export const AppLayout = () => {
