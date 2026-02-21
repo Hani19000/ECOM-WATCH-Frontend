@@ -32,12 +32,25 @@ export const useAuth = () => {
     };
 
     const login = async (credentials) => {
-        const { user, accessToken } = await authService.login(credentials);
+        // 1. On récupère le résultat complet
+        const result = await authService.login(credentials);
 
-        setAccessToken(accessToken);
-        setUser(user);
+        setAccessToken(result.accessToken);
+        setUser(result.user);
 
-        return user;
+        if (result.claimedOrderNumbers?.length > 0) {
+            const { purged } = GuestOrderService.syncWithClaimed(result.claimedOrderNumbers);
+            console.log(`[useAuth] login → ${purged} commande(s) purgée(s) du localStorage guest`);
+        } else if (result.claimedOrders > 0) {
+            GuestOrderService.clearAll();
+            console.log(`[useAuth] login → localStorage guest vidé (${result.claimedOrders} commande(s) rattachée(s))`);
+        }
+
+        if (result.claimedOrders > 0) {
+            setTimeout(() => refetch(), 1000);
+        }
+
+        return result.user;
     };
 
     const logout = async () => {
