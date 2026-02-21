@@ -36,20 +36,16 @@ export const OrderService = {
     /**
      * Récupère les détails complets d'une commande
      */
-    async getOrderDetails(orderId, email = null) {
+    async getOrderDetails(orderId) {
         try {
-            const { data } = await api.get(`/orders/${orderId}`, {
-                params: email ? { email: email.trim().toLowerCase() } : {}
-            });
+            // On encode l'ID pour gérer le caractère '#' s'il est présent
+            const encodedId = encodeURIComponent(orderId);
+            const { data } = await api.get(`/orders/${encodedId}`);
 
-            // FIX : Si data.data.order n'existe pas, on prend data.data (le backend renvoie parfois l'objet direct)
             const orderData = data.data?.order || data.data;
-
-            // On s'assure que les items sont bien présents
             if (orderData && !orderData.items && orderData.OrderItems) {
                 orderData.items = orderData.OrderItems;
             }
-
             return orderData;
         } catch (error) {
             console.error('[OrderService] Erreur récupération commande :', error);
@@ -62,7 +58,7 @@ export const OrderService = {
     // ─────────────────────────────────────────────────────────────────────
 
     /**
-     * 🔄 RATTACHEMENT MANUEL D'UNE COMMANDE GUEST
+     * RATTACHEMENT MANUEL D'UNE COMMANDE GUEST
      *
      * Appelle l'API pour transférer la propriété de la commande,
      * puis synchronise le localStorage pour retirer la commande

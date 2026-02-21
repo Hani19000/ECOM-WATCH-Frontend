@@ -1,6 +1,6 @@
-import { Edit2, Trash2, PlusCircle } from 'lucide-react';
+import { Edit2, PlusCircle } from 'lucide-react';
 
-export const ProductTableRow = ({ product, onEdit, onAddVariant, onDelete }) => {
+export const ProductTableRow = ({ product, onEdit, onAddVariant }) => {
     const price = product.variantsPreview?.[0]?.price || product.startingPrice || product.price || 0;
     const stock = product.variantsPreview?.reduce((acc, v) => acc + (v.inventory?.availableStock || 0), 0) || 0;
     const isOutOfStock = stock === 0;
@@ -81,9 +81,6 @@ export const ProductTableRow = ({ product, onEdit, onAddVariant, onDelete }) => 
                     </button>
                     <button onClick={() => onEdit(product.id)} title="Modifier" className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors focus:ring-2 focus:ring-blue-500/50 outline-none">
                         <Edit2 className="w-5 h-5 sm:w-4 sm:h-4" />
-                    </button>
-                    <button onClick={() => onDelete(product.id)} title="Supprimer" className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus:ring-2 focus:ring-red-500/50 outline-none">
-                        <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
                     </button>
                 </div>
             </td>

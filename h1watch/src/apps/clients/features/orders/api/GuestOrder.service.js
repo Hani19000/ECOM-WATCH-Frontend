@@ -1,30 +1,3 @@
-/**
- * @module GuestOrderService
- *
- * ─── CORRECTIONS ──────────────────────────────────────────────────────────────
- *
- * BUG 1 — "commandes toujours visibles après inscription"
- * CAUSE : `window.addEventListener('storage', ...)` ne se déclenche pas dans
- * le même onglet. useGuestOrders restait figé sur les anciennes commandes.
- * FIX : Chaque écriture dispatch un CustomEvent('guestOrdersChanged').
- * useGuestOrders écoute cet événement (même onglet) + 'storage' (autres onglets).
- *
- * BUG 2 — "double commande dont une à 0€"
- * CAUSE : Le checkout frontend appelait GuestOrderService.addOrder() avec la
- * réponse brute du serveur (statut PENDING, totalAmount = 0) avant confirmation
- * du paiement Stripe. Le webhook Stripe créait ensuite la vraie commande avec
- * le bon montant et orderNumber, résultant en deux entrées dans le localStorage.
- * FIX : addOrder() refuse les commandes en statut PENDING ou avec un montant nul.
- * La sauvegarde locale ne doit se faire qu'après confirmation de paiement,
- * quand le serveur retourne statut PAID avec un totalAmount > 0.
- *
- * CONTRAT D'USAGE (côté checkout frontend) :
- * N'appeler addOrder() qu'après la confirmation de paiement :
- *   - Après redirection depuis Stripe (success_url)
- *   - OU après réception du webhook côté client (polling sur /orders/:id)
- *   - JAMAIS immédiatement après POST /checkout (commande encore PENDING)
- */
-
 const CONFIG = {
     STORAGE_KEY: 'h1_guest_orders',
     MAX_AGE_DAYS: 30,
