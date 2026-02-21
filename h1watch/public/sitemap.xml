@@ -1,0 +1,50 @@
+# ============================================================
+# robots.txt — ECOM-WATCH
+# https://ecom-watch.fr
+# ============================================================
+
+# ─── Moteurs principaux ──────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+
+# ─── Règle générale (tous les autres robots) ─────────────────
+User-agent: *
+Allow: /
+Crawl-delay: 2
+
+# ─── Pages privées / inutiles pour le SEO ─────────────────────
+Disallow: /checkout/
+Disallow: /checkout/success
+Disallow: /checkout/cancel
+Disallow: /profile
+Disallow: /track-order
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /admin/
+Disallow: /api/
+
+# ─── Paramètres dynamiques inutiles ──────────────────────────
+Disallow: /*?page=
+Disallow: /*?minPrice=
+Disallow: /*?maxPrice=
+
+# ─── Ressources utiles au rendu (JS/CSS) ─────────────────────
+Allow: /assets/
+Allow: /*.js$
+Allow: /*.css$
+Allow: /*.webp$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.svg$
+
+# ─── Sitemaps ─────────────────────────────────────────────────
+Sitemap: https://ecom-watch.fr/sitemap.xml
+Sitemap: https://ecom-watch.fr/sitemap-products.xml
