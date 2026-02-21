@@ -5,26 +5,23 @@ export const FOOTER_NAV = [
         title: 'Collection',
         links: [
             { label: 'Toutes les montres', to: '/catalogue' },
-            { label: 'Nouveautés', to: '/catalogue?category=nouveautes' },
-            { label: 'Éditions limitées', to: '/catalogue?category=limitees' },
         ],
     },
     {
         title: 'Espace Client',
         links: [
             { label: 'Mon compte', to: '/profile' },
-            { label: 'Suivre ma commande', to: '/track-order' },
-            { label: 'Panier', to: '/catalogue' },
+            { label: 'Suivre ma commande', to: '/profile' },
         ],
     },
-    {
-        title: 'Informations',
-        links: [
-            { label: 'Livraison & retours', to: '/catalogue' },
-            { label: 'Garantie & authenticité', to: '/catalogue' },
-            { label: 'Contact', to: '/catalogue' },
-        ],
-    },
+    // {
+    //     title: 'Informations',
+    //     links: [
+    //         { label: 'Livraison & retours', to: '/catalogue' },
+    //         { label: 'Garantie & authenticité', to: '/catalogue' },
+    //         { label: 'Contact', to: '/catalogue' },
+    //     ],
+    // },
 ];
 
 export const FOOTER_LEGAL = [
