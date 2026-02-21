@@ -35,77 +35,72 @@ permissions:
 
 jobs:
   deploiement-vercel:
-    name: "Déploiement → Vercel Production"
+    name: "🚀 Déploiement → Vercel Production"
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: ${{ steps.deploy.outputs.url }}
+      url: ${{ steps.deploy.outputs.preview-url }}
 
     defaults:
       run:
         working-directory: h1watch
 
     steps:
-      - name: "Clonage du dépôt"
+      - name: "📥 Clonage du dépôt"
         uses: actions/checkout@v4
 
-      - name: "Configuration de Node.js"
+      - name: "⚙️ Configuration de Node.js"
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: h1watch/package-lock.json
 
-      - name: "Installation des dépendances"
+      - name: "📦 Installation des dépendances"
         run: npm ci --prefer-offline
 
-      - name: "Audit de sécurité rapide"
+      - name: "🔒 Audit de sécurité rapide"
         run: npm audit --audit-level=critical
         continue-on-error: true
 
-      - name: "Installation du CLI Vercel"
-        run: npm install -g vercel@latest
-
-      # ── FIX : Le CLI Vercel lit VERCEL_TOKEN, VERCEL_ORG_ID et VERCEL_PROJECT_ID
-      # automatiquement depuis les variables d'environnement.
-      # Pas besoin de `vercel login` ni de `vercel link` en CI.
-      # La commande --yes supprime toutes les confirmations interactives.
-      - name: "Déploiement en production"
+      # ── On utilise l'action officielle amondnet/vercel-action
+      # Elle gère le token, l'org et le projet sans avoir besoin du CLI manuellement.
+      # C'est la méthode la plus fiable pour GitHub Actions + Vercel.
+      - name: "🚀 Déploiement en production via Vercel Action"
         id: deploy
-        run: |
-          DEPLOY_URL=$(vercel deploy --prod --yes)
-          echo "url=${DEPLOY_URL}" >> $GITHUB_OUTPUT
-          echo "Déployé sur : ${DEPLOY_URL}"
         uses: amondnet/vercel-action@v25
-with:
-  vercel-token: ${{ secrets.VERCEL_TOKEN }}
-  vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-  vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-  vercel-args: "--prod"
-  working-directory: ./h1watch
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          # --prod déploie sur le domaine de production (pas une URL de preview)
+          vercel-args: "--prod"
+          # working-directory pointe vers le dossier h1watch où se trouve le code
+          working-directory: ./h1watch
 
-      - name: "Health check post-déploiement"
+      - name: "🏥 Health check post-déploiement"
         run: |
           echo "Attente de 15 secondes pour la propagation..."
           sleep 15
-          URL="${{ secrets.VITE_APP_BASE_URL }}"
+          # steps.deploy.outputs.preview-url est l'URL retournée par amondnet/vercel-action
+          URL="${{ steps.deploy.outputs.preview-url }}"
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${URL}" || echo "000")
           if [ "$HTTP_STATUS" = "200" ]; then
-            echo "Site accessible (HTTP ${HTTP_STATUS})"
+            echo "✅ Site accessible (HTTP ${HTTP_STATUS}) : ${URL}"
           else
-            echo "HTTP ${HTTP_STATUS} — vérifier manuellement : ${URL}"
+            echo "⚠️ HTTP ${HTTP_STATUS} — vérifier manuellement : ${URL}"
           fi
 
-      - name: "Résumé du déploiement"
+      - name: "📊 Résumé du déploiement"
         if: always()
         run: |
           cat >> $GITHUB_STEP_SUMMARY << EOF
-          ## Rapport de Déploiement ECOM-WATCH
+          ## 🚀 Rapport de Déploiement ECOM-WATCH
 
           | Champ | Valeur |
           |-------|--------|
           | **Statut** | ${{ job.status }} |
           | **Commit** | \`${{ github.sha }}\` |
           | **Auteur** | ${{ github.actor }} |
-          | **URL Vercel** | ${{ steps.deploy.outputs.url }} |
+          | **URL déployée** | ${{ steps.deploy.outputs.preview-url }} |
           EOF
