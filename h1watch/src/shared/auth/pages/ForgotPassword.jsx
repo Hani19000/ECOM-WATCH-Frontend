@@ -1,4 +1,4 @@
-import ForgotPasswordForm from '../components/forgetpassword/ForgotPasswordForm';
+import ForgotPasswordForm from '../components/forgetpassword/ForgotPasswordform'
 
 const ForgotPassword = () => (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
