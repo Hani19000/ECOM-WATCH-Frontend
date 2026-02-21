@@ -38,12 +38,11 @@ jobs:
         run: npm ci --prefer-offline
 
       - name: Deploiement vers Vercel (CLI Officiel)
-        id: deploy # Ajout de l'ID obligatoire pour y faire référence plus tard
+        id: deploy
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        # Exécution depuis la racine du repo pour éviter l'erreur h1watch/h1watch
         run: |
           npm install --global vercel@latest
           
@@ -54,18 +53,20 @@ jobs:
           echo "preview-url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
 
       - name: Health check
+        env:
+          PROD_URL: "https://ecomwatch.vercel.app"
         run: |
-          # On attend que le déploiement soit pleinement accessible
+          echo "Attente de la propagation du deploiement..."
           sleep 15
           
-          URL="${{ steps.deploy.outputs.preview-url }}"
-          echo "URL deployee : $URL"
+          echo "Ping de l'URL de production : $PROD_URL"
           
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL")
           echo "HTTP status : $STATUS"
           
-          # Ajout d'une sécurité : faire échouer le job si le statut n'est pas 200
           if [ "$STATUS" -ne 200 ]; then
-            echo "Erreur: Le site n'a pas répondu correctement."
+            echo "Erreur: Le site de production n'a pas repondu avec un statut 200."
             exit 1
           fi
+          
+          echo "Deploiement verifie et operationnel !"
