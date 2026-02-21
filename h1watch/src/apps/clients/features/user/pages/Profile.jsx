@@ -3,30 +3,21 @@ import { useAuthStore } from '../../../../../shared/auth/hooks/useAuthStore';
 import { useProfile } from '../hooks/useProfile';
 import { useGuestOrders } from '../../orders/hooks/useGuestOrders';
 
+// UI Components
 import ProfileForm from '../components/ProfileDetail';
 import ChangePasswordForm from '../components/ChangePasswordForm';
 import OrderHistory from '../../orders/components/OrderHistory';
 import TrackOrderPage from '../../orders/pages/TrackOrder';
+
+// Guest Components
 import GuestConversionCTA from '../components/GuestConversionCTA';
-import GuestOrdersList from '../../orders/components/GuestOrdersList';
+import GuestOrdersList from '../../orders/components/GuestOrdersList'
 
 /**
- * @typedef {{ id: string, email?: string }} SelectedOrder
- * Identifiant de la commande sélectionnée.
- * - `id`    : UUID (auth) ou orderNumber (guest)
- * - `email` : requis pour le suivi guest (POST /track-guest)
+ * @component ProfileSidebar
+ * Pourquoi : Centralise la navigation pour renforcer l'aspect "Espace Personnel" pro.
+ * Le choix de la colonne à gauche est un standard e-commerce luxe (ex: Farfetch, MyTheresa).
  */
-
-const TABS_AUTH = [
-    { id: 'orders', label: 'Mes Commandes' },
-    { id: 'profile', label: 'Informations Personnelles' },
-    { id: 'security', label: 'Sécurité & Accès' },
-];
-
-const TABS_GUEST = [
-    { id: 'orders', label: 'Suivre mes achats' },
-];
-
 const ProfileSidebar = ({ activeTab, setActiveTab, tabs, onLogout, user }) => (
     <aside className="w-full lg:w-64 flex flex-col space-y-1">
         <div className="mb-8 px-4">
@@ -70,35 +61,22 @@ const ProfilePage = () => {
     const { orders: guestOrders } = useGuestOrders();
 
     const [activeTab, setActiveTab] = useState('orders');
+    const [trackedOrderId, setTrackedOrderId] = useState(null);
 
-    /**
-     * BUG FIX : `trackedOrderId` (string seul) perdait l'email passé par GuestOrdersList.
-     * On stocke maintenant un objet { id, email? } pour conserver les deux valeurs.
-     * @type {[SelectedOrder|null, Function]}
-     */
-    const [selectedOrder, setSelectedOrder] = useState(null);
-
-    /** Sélectionne une commande authentifiée (UUID uniquement). */
-    const handleSelectAuthOrder = (orderId) => {
-        setSelectedOrder({ id: orderId });
-    };
-
-    /**
-     * Sélectionne une commande guest.
-     * GuestOrdersList passe (orderNumber, email) — les deux sont capturés ici.
-     */
-    const handleSelectGuestOrder = (orderNumber, email) => {
-        setSelectedOrder({ id: orderNumber, email });
-    };
-
-    const handleCloseOrder = () => setSelectedOrder(null);
-
-    const tabs = isAuthenticated ? TABS_AUTH : TABS_GUEST;
+    const tabs = isAuthenticated ? [
+        { id: 'orders', label: 'Mes Commandes' },
+        { id: 'profile', label: 'Informations Personnelles' },
+        { id: 'security', label: 'Sécurité & Accès' }
+    ] : [
+        { id: 'orders', label: 'Suivre mes achats' }
+    ];
 
     return (
         <div className="min-h-screen bg-white pt-32 pb-20">
             <div className="max-w-7xl mx-auto px-6 lg:px-12">
                 <div className="flex flex-col lg:flex-row gap-16">
+
+                    {/* Colonne Navigation */}
                     <ProfileSidebar
                         activeTab={activeTab}
                         setActiveTab={setActiveTab}
@@ -107,51 +85,47 @@ const ProfilePage = () => {
                         onLogout={logout}
                     />
 
+                    {/* Zone de Contenu Principale */}
                     <main className="flex-1 min-h-[600px]">
+                        {/* Affichage Authentifié */}
                         {isAuthenticated ? (
                             <div className="animate-fadeIn">
-                                {activeTab === 'profile' && (
-                                    <ProfileForm profile={profile} loading={loading} />
-                                )}
+                                {activeTab === 'profile' && <ProfileForm profile={profile} loading={loading} />}
                                 {activeTab === 'security' && <ChangePasswordForm />}
                                 {activeTab === 'orders' && (
                                     <div className="space-y-8">
-                                        {selectedOrder ? (
+                                        {trackedOrderId ? (
                                             <TrackOrderPage
-                                                orderId={selectedOrder.id}
-                                                onClose={handleCloseOrder}
+                                                orderId={trackedOrderId}
+                                                onClose={() => setTrackedOrderId(null)}
                                             />
                                         ) : (
-                                            <OrderHistory onSelectOrder={handleSelectAuthOrder} />
+                                            <OrderHistory onSelectOrder={setTrackedOrderId} />
                                         )}
                                     </div>
                                 )}
                             </div>
                         ) : (
+                            /* Affichage Guest - Refonte Luxe */
                             <div className="space-y-12 animate-fadeIn">
                                 <header className="max-w-2xl border-b border-gray-100 pb-8">
-                                    <h1 className="text-3xl font-serif text-gray-900 mb-4 italic">
-                                        Espace Invité
-                                    </h1>
+                                    <h1 className="text-3xl font-serif text-gray-900 mb-4 italic">Espace Invité</h1>
                                     <p className="text-gray-500 leading-relaxed font-light">
-                                        Consultez l'état de vos commandes en cours. Pour une expérience
-                                        personnalisée et un historique illimité, nous vous recommandons
-                                        de créer un compte.
+                                        Consultez l'état de vos commandes en cours. Pour une expérience personnalisée et un historique illimité, nous vous recommandons de créer un compte.
                                     </p>
                                 </header>
 
                                 <GuestConversionCTA guestOrdersCount={guestOrders.length} />
 
-                                {selectedOrder ? (
+                                {trackedOrderId ? (
                                     <TrackOrderPage
-                                        orderId={selectedOrder.id}
-                                        email={selectedOrder.email}
-                                        onClose={handleCloseOrder}
+                                        orderId={trackedOrderId}
+                                        onClose={() => setTrackedOrderId(null)}
                                     />
                                 ) : (
                                     <GuestOrdersList
                                         orders={guestOrders}
-                                        onSelectOrder={handleSelectGuestOrder}
+                                        onSelectOrder={setTrackedOrderId}
                                     />
                                 )}
                             </div>
