@@ -1,10 +1,4 @@
-# ============================================================
-# PIPELINE CD — DÉPLOIEMENT CONTINU VERS VERCEL
-# Déclenchement : push sur `main`
-# Stack : React + Vite → Vercel
-# ============================================================
-
-name: "CD — Déploiement Vercel Production"
+name: CD - Deploiement Vercel Production
 
 on:
   push:
@@ -17,90 +11,43 @@ on:
       - "h1watch/vite.config.*"
       - "h1watch/package.json"
       - ".github/workflows/cd.yml"
-
   workflow_dispatch:
-    inputs:
-      message:
-        description: "Raison du déploiement manuel"
-        required: false
-        default: "Redéploiement manuel"
 
 concurrency:
   group: deploy-vercel-production
   cancel-in-progress: false
 
-permissions:
-  contents: read
-  deployments: write
-
 jobs:
-  deploiement-vercel:
-    name: "🚀 Déploiement → Vercel Production"
+  deploiement:
+    name: Build et deploiement Vercel
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: ${{ steps.deploy.outputs.preview-url }}
-
-    defaults:
-      run:
-        working-directory: h1watch
 
     steps:
-      - name: "📥 Clonage du dépôt"
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: "⚙️ Configuration de Node.js"
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: h1watch/package-lock.json
 
-      - name: "📦 Installation des dépendances"
+      - name: Installation des dependances
+        working-directory: h1watch
         run: npm ci --prefer-offline
 
-      - name: "🔒 Audit de sécurité rapide"
-        run: npm audit --audit-level=critical
-        continue-on-error: true
-
-      # ── On utilise l'action officielle amondnet/vercel-action
-      # Elle gère le token, l'org et le projet sans avoir besoin du CLI manuellement.
-      # C'est la méthode la plus fiable pour GitHub Actions + Vercel.
-      - name: "🚀 Déploiement en production via Vercel Action"
-        id: deploy
+      - name: Deploiement vers Vercel
         uses: amondnet/vercel-action@v25
+        id: deploy
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          # --prod déploie sur le domaine de production (pas une URL de preview)
           vercel-args: "--prod"
-          # working-directory pointe vers le dossier h1watch où se trouve le code
           working-directory: ./h1watch
 
-      - name: "🏥 Health check post-déploiement"
+      - name: Health check
         run: |
-          echo "Attente de 15 secondes pour la propagation..."
           sleep 15
-          # steps.deploy.outputs.preview-url est l'URL retournée par amondnet/vercel-action
-          URL="${{ steps.deploy.outputs.preview-url }}"
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${URL}" || echo "000")
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "✅ Site accessible (HTTP ${HTTP_STATUS}) : ${URL}"
-          else
-            echo "⚠️ HTTP ${HTTP_STATUS} — vérifier manuellement : ${URL}"
-          fi
-
-      - name: "📊 Résumé du déploiement"
-        if: always()
-        run: |
-          cat >> $GITHUB_STEP_SUMMARY << EOF
-          ## 🚀 Rapport de Déploiement ECOM-WATCH
-
-          | Champ | Valeur |
-          |-------|--------|
-          | **Statut** | ${{ job.status }} |
-          | **Commit** | \`${{ github.sha }}\` |
-          | **Auteur** | ${{ github.actor }} |
-          | **URL déployée** | ${{ steps.deploy.outputs.preview-url }} |
-          EOF
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.deploy.outputs.preview-url }}")
+          echo "HTTP status : $STATUS"
+          echo "URL deployee : ${{ steps.deploy.outputs.preview-url }}"
