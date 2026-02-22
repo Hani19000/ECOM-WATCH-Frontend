@@ -3,8 +3,6 @@ import api from '../../../../../api/axios.config';
 import { useAuthStore } from '../../../../../shared/auth/hooks/useAuthStore';
 import logger from '../../../../../core/utils/logger';
 import toast from 'react-hot-toast';
-
-// AJOUT DE L'IMPORT MANQUANT ICI :
 import { GuestOrderService } from '../api/GuestOrder.service';
 
 import {
@@ -14,8 +12,10 @@ import {
     COMPLETED_ORDER_STATUSES
 } from '../../../../../core/constants/orderStatus';
 
-const POLLING_INTERVAL = 30000; // 30 secondes
-const MAX_POLLING_ERRORS = 3; // Arrêter après 3 erreurs consécutives
+const POLLING_INTERVAL = 30000;
+const MAX_POLLING_ERRORS = 3;
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const useOrderTracking = (initialOrderId = null) => {
     const { isAuthenticated } = useAuthStore();
@@ -29,25 +29,18 @@ export const useOrderTracking = (initialOrderId = null) => {
 
     const pollingIntervalRef = useRef(null);
     const errorCountRef = useRef(0);
-    const guestDataRef = useRef(null);
 
     const stopPolling = useCallback(() => {
         if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
-            guestDataRef.current = null;
             setIsPolling(false);
-            logger.info('[useOrderTracking] Polling arrêté');
         }
     }, []);
 
-    /**
-     * Helper pour normaliser les données de la commande (force la présence de items)
-     */
     const normalizeOrderData = (data) => {
         const orderData = data.data?.order || data.data;
         if (orderData) {
-            // On s'assure que le tableau items existe toujours pour éviter les erreurs d'affichage
             orderData.items = orderData.items || orderData.OrderItems || [];
         }
         return orderData;
@@ -55,20 +48,15 @@ export const useOrderTracking = (initialOrderId = null) => {
 
     const trackAuthenticatedOrder = useCallback(async (orderId) => {
         if (!orderId) return;
-
         try {
             setLoading(true);
             setError(null);
-
             const { data } = await api.get(`/orders/${orderId}`);
             const orderData = normalizeOrderData(data);
-
             if (!orderData) throw new Error('Commande introuvable');
-
             setOrder(orderData);
             setIsGuest(false);
             errorCountRef.current = 0;
-
             if (ACTIVE_ORDER_STATUSES.includes(orderData.status)) {
                 startAuthenticatedPolling(orderId);
             }
@@ -78,34 +66,27 @@ export const useOrderTracking = (initialOrderId = null) => {
         } finally {
             setLoading(false);
         }
-    }, [isAuthenticated, stopPolling]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const trackGuestOrder = useCallback(async (orderNumber, email) => {
         if (!orderNumber || !email) {
             toast.error('Numéro de commande et email requis');
             return;
         }
-
         stopPolling();
-
         try {
             setLoading(true);
             setError(null);
             setRateLimitReached(false);
-
             const { data } = await api.post('/orders/track-guest', { orderNumber, email });
             const orderData = normalizeOrderData(data);
-
             if (!orderData) throw new Error('Format de réponse invalide');
-
             setOrder(orderData);
             setIsGuest(true);
-            guestDataRef.current = { orderNumber, email };
-
             if (ACTIVE_ORDER_STATUSES.includes(orderData.status)) {
                 startGuestPolling(orderNumber, email);
             }
-            toast.success('Commande trouvée !');
         } catch (err) {
             if (err.response?.status === 429) {
                 setRateLimitReached(true);
@@ -116,6 +97,7 @@ export const useOrderTracking = (initialOrderId = null) => {
         } finally {
             setLoading(false);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stopPolling]);
 
     const startGuestPolling = useCallback((orderNumber, email) => {
@@ -155,29 +137,56 @@ export const useOrderTracking = (initialOrderId = null) => {
     }, [stopPolling]);
 
     /**
-     * AUTO-LOAD : Se déclenche au montage si un ID est présent
+     * AUTO-LOAD : Se déclenche au montage si un ID est présent.
+     *
+     * FIX : La vérification isAuthenticated est faite EN PREMIER.
+     *
+     * ORDRE DE PRIORITÉ (avant fix) :
+     *   1. Cherche dans localStorage → trouve la commande
+     *   2. Lance trackGuestOrder → 404 (user_id IS NOT NULL bloqué par le backend)
+     *   3. Affiche "Commande introuvable"
+     *
+     * ORDRE DE PRIORITÉ (après fix) :
+     *   1. isAuthenticated ? → trackAuthenticatedOrder (Bearer token)
+     *   2. Sinon, cherche dans localStorage → trackGuestOrder
+     *
+     * Pourquoi cette priorité :
+     *   Une commande créée par un utilisateur connecté a user_id IS NOT NULL en base.
+     *   L'API guest (/track-guest, /orders/:id sans Bearer) la rejette intentionnellement.
+     *   Si l'user est connecté, on doit TOUJOURS utiliser le Bearer token, peu importe
+     *   ce qui est dans le localStorage (qui peut contenir des données périmées).
      */
     useEffect(() => {
-        if (initialOrderId) {
-            const localOrders = GuestOrderService.getOrders();
-            const localOrder = localOrders.find(
-                (o) => o.id === initialOrderId || o.orderNumber === initialOrderId
-            );
+        if (!initialOrderId) return;
 
-            if (localOrder && localOrder.email) {
-                trackGuestOrder(localOrder.orderNumber, localOrder.email);
-            } else if (isAuthenticated) {
-                const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(initialOrderId);
-
-                if (isUUID) {
-                    trackAuthenticatedOrder(initialOrderId);
-                } else {
-                    setError("Numéro de commande invalide pour ce compte.");
-                }
+        // ── CAS 1 : Utilisateur authentifié ──────────────────────────────────
+        // On utilise TOUJOURS le Bearer token pour les users connectés.
+        // On ne consulte PAS le localStorage ici : même si la commande y existe,
+        // elle aurait été créée avec user_id IS NOT NULL → l'API guest la rejetterait.
+        if (isAuthenticated) {
+            if (UUID_REGEX.test(initialOrderId)) {
+                trackAuthenticatedOrder(initialOrderId);
             } else {
-                setError("Veuillez vous connecter ou utiliser le formulaire de suivi.");
+                // Numéro de commande textuel (ORD-...) : on cherche l'UUID dans
+                // l'historique des commandes (OrderHistory appelle onSelectOrder avec order.id).
+                // Si on arrive ici avec un orderNumber, c'est un bug d'appel — on le signale.
+                setError('Format d\'identifiant invalide pour un compte connecté.');
+                logger.warn('[useOrderTracking] Attendu un UUID pour un user authentifié, reçu :', initialOrderId);
             }
+            return; // ← sortie explicite : on ne touche pas au localStorage
         }
+
+        // ── CAS 2 : Utilisateur guest ─────────────────────────────────────────
+        // Seulement ici on consulte le localStorage.
+        const localOrder = GuestOrderService.getOrderByNumber(initialOrderId)
+            ?? GuestOrderService.getOrders().find(o => o.id === initialOrderId);
+
+        if (localOrder?.email) {
+            trackGuestOrder(localOrder.orderNumber ?? localOrder.id, localOrder.email);
+        } else {
+            setError('Commande introuvable. Connectez-vous ou vérifiez vos informations.');
+        }
+
         return () => stopPolling();
     }, [initialOrderId, isAuthenticated, trackAuthenticatedOrder, trackGuestOrder, stopPolling]);
 
