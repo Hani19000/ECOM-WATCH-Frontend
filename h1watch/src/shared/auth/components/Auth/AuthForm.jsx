@@ -1,6 +1,6 @@
 import { Mail, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuthForm } from '../../hooks/useAuthForm'
+import { useAuth } from '../../hooks/useAuthForm'
 import AuthHeader from '../../components/Auth/AuthHeader'
 import AuthInput from '../../components/Auth/AuthInput';
 import AuthActions from '../../components/Auth/AuthActions';
@@ -15,7 +15,7 @@ const AuthForm = ({ mode = 'login' }) => {
         onSubmit,
         config,
         isLogin
-    } = useAuthForm(mode);
+    } = useAuth(mode);
 
     return (
         <div className="w-full max-w-md bg-white rounded-4xl shadow-xl shadow-gray-100/50 border border-gray-100 p-8 md:p-12">
