@@ -2,25 +2,6 @@ import { Helmet } from 'react-helmet-async';
 
 /**
  * @component SEOHead
- *
- * Composant SEO universel basé sur react-helmet-async.
- * Injecte dynamiquement les balises <head> appropriées selon la page.
- *
- * ARCHITECTURE :
- * - react-helmet-async est déjà installé (v2.0.5) et wrappé dans <HelmetProvider> dans App.jsx
- * - Ce composant est à utiliser dans chaque page
- * - Il override les balises statiques de index.html avec des valeurs dynamiques
- *
- * USAGE :
- * ```jsx
- * <SEOHead
- *   title="Nom du produit - ECOM-WATCH"
- *   description="Description courte du produit..."
- *   canonical="https://ecom-watch-frontend.vercel.app/product/mon-produit"
- *   image="https://ecom-watch-frontend.vercel.app/products/mon-produit.jpg"
- *   type="product"
- *   structuredData={productSchema}
- * />
  * ```
  *
  * @param {Object} props
@@ -46,8 +27,8 @@ const SEOHead = ({
     locale = 'fr_FR',
 }) => {
     const SITE_NAME = 'ECOM-WATCH';
-    const DEFAULT_IMAGE = 'https://ecom-watch-frontend.vercel.app/images/og-cover.jpg';
-    const BASE_URL = 'https://ecom-watch-frontend.vercel.app';
+    const DEFAULT_IMAGE = 'https://ecomwatch.vercel.app/images/og-cover.jpg';
+    const BASE_URL = 'https://ecomwatch.vercel.app.vercel.app';
 
     const resolvedImage = image || DEFAULT_IMAGE;
     const resolvedImageAlt = imageAlt || `${title} – ${SITE_NAME}`;
