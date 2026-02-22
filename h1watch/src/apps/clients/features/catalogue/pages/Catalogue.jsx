@@ -8,10 +8,9 @@ import { buildCatalogueSchema } from '../../../../../shared/SEO/seoSchemas';
 
 const BASE_URL = 'https://ecom-watch.fr';
 
-const Catalogue = () => {
+export default function Catalogue() {
     const { state, data, actions } = useCatalogueLogic();
 
-    // ─── SEO dynamique selon filtres actifs ──────────────────
     const seoTitle = state.urlSearch
         ? `"${state.urlSearch}" – Montres | ECOM-WATCH`
         : state.urlCategory !== 'all'
@@ -24,18 +23,18 @@ const Catalogue = () => {
             ? `Découvrez notre sélection de montres ${state.activeCategoryName.toLowerCase()}. Authenticité certifiée, garantie 2 ans, livraison sécurisée.`
             : `Explorez notre collection complète de ${data.filteredProducts.length} montres de prestige. Haute horlogerie, éditions limitées, authenticité garantie.`;
 
-    // URL canonique : sans paramètres de prix pour éviter la duplication
-    const canonicalUrl =
-        state.urlCategory !== 'all'
-            ? `${BASE_URL}/catalogue?category=${state.urlCategory}`
-            : `${BASE_URL}/catalogue`;
+    /*
+     * L'URL canonique ignore volontairement les paramètres de prix ou de recherche.
+     * Prévient la dilution du budget de crawl SEO (Duplicate Content).
+     */
+    const canonicalUrl = state.urlCategory !== 'all'
+        ? `${BASE_URL}/catalogue?category=${state.urlCategory}`
+        : `${BASE_URL}/catalogue`;
 
-    // noIndex si filtres de prix actifs (évite duplicate content)
     const shouldNoIndex = state.urlMinPrice > state.dataMinPrice || state.urlMaxPrice < state.dataMaxPrice;
 
     return (
         <>
-            {/* ─── SEO ───────────────────────────────────────────── */}
             <SEOHead
                 title={seoTitle}
                 description={seoDescription}
@@ -49,7 +48,6 @@ const Catalogue = () => {
                 )}
             />
 
-            {/* ─── Page ──────────────────────────────────────────── */}
             <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-8 sm:py-10 md:py-12 pt-20 sm:pt-24 md:pt-28 min-h-screen">
                 <CatalogueHeader
                     activeCategoryName={state.activeCategoryName}
@@ -68,7 +66,7 @@ const Catalogue = () => {
                 />
 
                 <main className="flex flex-col lg:flex-row gap-8 lg:gap-12 mt-8">
-                    {/* Desktop Sidebar */}
+                    {/* Sidebar Desktop */}
                     <aside className="hidden lg:block w-72 flex-shrink-0" aria-label="Filtres produits">
                         <div className="sticky top-32">
                             <ProductFilters
@@ -86,28 +84,49 @@ const Catalogue = () => {
                         </div>
                     </aside>
 
-                    {/* Mobile Drawer */}
+                    {/* Drawer Mobile (Côté droit) */}
                     {state.isFiltersDrawerOpen && (
-                        <div className="lg:hidden fixed inset-0 z-50">
+                        <div className="lg:hidden fixed inset-0 z-50 flex justify-end overflow-hidden">
+                            {/* Backdrop */}
                             <div
-                                className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-fadeIn"
+                                className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
                                 onClick={() => actions.setIsFiltersDrawerOpen(false)}
+                                aria-hidden="true"
                             />
-                            <div className="fixed inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto animate-slideUp">
-                                <ProductFilters
-                                    filters={{
-                                        search: state.urlSearch,
-                                        category: state.urlCategory,
-                                        minPrice: state.urlMinPrice,
-                                        maxPrice: state.urlMaxPrice,
-                                    }}
-                                    onFilterChange={actions.updateFilters}
-                                    categories={state.categoryTabs.filter(c => c.slug !== 'all')}
-                                    priceRange={{ min: state.dataMinPrice, max: state.dataMaxPrice }}
-                                    priceSegments={state.segments}
-                                    isMobile={true}
-                                />
-                            </div>
+
+                            {/* Panel */}
+                            <aside className="relative w-[85%] max-w-sm h-full bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+                                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                                    <h2 className="text-sm font-bold uppercase tracking-widest text-gray-900">
+                                        Filtres
+                                    </h2>
+                                    <button
+                                        onClick={() => actions.setIsFiltersDrawerOpen(false)}
+                                        className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+                                        aria-label="Fermer les filtres"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto px-5 py-6 custom-scrollbar">
+                                    <ProductFilters
+                                        filters={{
+                                            search: state.urlSearch,
+                                            category: state.urlCategory,
+                                            minPrice: state.urlMinPrice,
+                                            maxPrice: state.urlMaxPrice,
+                                        }}
+                                        onFilterChange={actions.updateFilters}
+                                        categories={state.categoryTabs.filter(c => c.slug !== 'all')}
+                                        priceRange={{ min: state.dataMinPrice, max: state.dataMaxPrice }}
+                                        priceSegments={state.segments}
+                                        isMobile={true}
+                                    />
+                                </div>
+                            </aside>
                         </div>
                     )}
 
@@ -127,6 +146,4 @@ const Catalogue = () => {
             </div>
         </>
     );
-};
-
-export default Catalogue;
+}
