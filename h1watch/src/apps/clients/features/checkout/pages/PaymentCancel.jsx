@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import SEOHead from '../../../../../shared/SEO/SEOHead';
 
 // ─── Constante : durée de réservation du stock (en secondes) ─────────────────
-const RESERVATION_DURATION_S = 30 * 60; // 30 minutes
+const RESERVATION_DURATION_S = 15 * 60; // 15 minutes
 
 /**
  * Hook de compte à rebours.
