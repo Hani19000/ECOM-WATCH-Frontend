@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
                     {/* Spinner CSS simple en attendant le composant UI */}
                     <div className="w-8 h-8 border-2 border-gray-200 border-t-black rounded-full animate-spin" />
                     <span className="text-xs uppercase tracking-widest text-gray-400 font-bold">
-                        Chargement H1Watch...
+                        Chargement ECOMWATCH...
                     </span>
                 </div>
             </div>

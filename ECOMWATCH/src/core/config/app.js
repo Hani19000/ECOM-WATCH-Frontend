@@ -32,10 +32,10 @@ export const appConfig = {
 
     // Clés LocalStorage (CRUCIAL pour éviter les conflits)
     STORAGE_KEYS: {
-        ACCESS_TOKEN: 'h1watch_access_token',
-        THEME: 'h1watch_theme',
-        GUEST_CART: 'h1watch_guest_cart',
-        GUEST_ORDERS: 'h1watch_guest_orders', // Vu dans useGuestOrders.js
+        ACCESS_TOKEN: 'ECOMWATCH_access_token',
+        THEME: 'ECOMWATCH_theme',
+        GUEST_CART: 'ECOMWATCH_guest_cart',
+        GUEST_ORDERS: 'ECOMWATCH_guest_orders', // Vu dans useGuestOrders.js
     },
 
     // Formats

@@ -1,6 +1,6 @@
 import { appConfig } from '../../../core/config/app';
 
-const STORAGE_KEY = appConfig.STORAGE_KEYS.GUEST_CART || 'h1watch_guest_cart';
+const STORAGE_KEY = appConfig.STORAGE_KEYS.GUEST_CART || 'ECOMWATCH_guest_cart';
 
 /**
  * Service gérant la persistance du panier "Invité" dans le navigateur.
