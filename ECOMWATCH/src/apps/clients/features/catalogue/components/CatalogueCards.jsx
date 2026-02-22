@@ -57,40 +57,56 @@ const CatalogueProductCard = ({ product, persistedVariant, onVariantChange }) =>
                     onClick={e => e.stopPropagation()}
                 >
                     {/* Swatches couleur */}
-                    <div className="flex gap-1.5 sm:gap-2" role="group" aria-label="Choisir une couleur">
+                    <div className="flex gap-0.5" role="group" aria-label="Choisir une couleur">
                         {state.availableColors.slice(0, 4).map(color => {
                             const isAvailable = actions.checkStock('color', color);
                             const isActive = state.selectedVariant?.attributes?.color === color;
                             const isLight = actions.isLightColor(color);
 
                             return (
+                                /*
+                                 * Zone de clic : 24×24px minimum (WCAG 2.5.5)
+                                 * Le visuel (swatch) reste petit via le span interne,
+                                 * mais la zone interactive est suffisamment grande.
+                                 */
                                 <button
                                     key={color}
                                     onClick={(e) => { e.preventDefault(); actions.changeVariant('color', color); }}
                                     disabled={!isAvailable}
                                     aria-label={`Couleur ${color}${!isAvailable ? ' (indisponible)' : ''}${isActive ? ' (sélectionnée)' : ''}`}
                                     aria-pressed={isActive}
-                                    className={`relative w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded-full transition-all duration-300
-                                        ${isActive ? 'ring-1 sm:ring-1.5 ring-offset-1 ring-[#ADA996] scale-110 shadow-sm' : 'hover:scale-105'}
+                                    className={`
+                                        relative flex items-center justify-center
+                                        w-6 h-6 rounded-full transition-all duration-300
                                         ${!isAvailable ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
                                     `}
-                                    style={{
-                                        backgroundColor: color,
-                                        border: isLight ? '1px solid #e5e7eb' : '0.5px solid rgba(0,0,0,0.1)'
-                                    }}
                                 >
-                                    {!isAvailable && (
-                                        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-                                            <div className="w-full h-[0.5px] bg-gray-400 rotate-45" />
-                                        </div>
-                                    )}
-                                    {isActive && isAvailable && (
-                                        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-                                            <svg className="w-1.5 h-1.5 sm:w-2 sm:h-2" fill="none" viewBox="0 0 24 24" stroke={isLight ? '#374151' : 'white'} strokeWidth={4}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        </div>
-                                    )}
+                                    {/* Visuel swatch — taille visuelle inchangée */}
+                                    <span
+                                        className={`
+                                            relative block w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded-full
+                                            transition-all duration-300
+                                            ${isActive ? 'ring-1 sm:ring-1.5 ring-offset-1 ring-[#ADA996] scale-110 shadow-sm' : 'hover:scale-105'}
+                                        `}
+                                        style={{
+                                            backgroundColor: color,
+                                            border: isLight ? '1px solid #e5e7eb' : '0.5px solid rgba(0,0,0,0.1)'
+                                        }}
+                                        aria-hidden="true"
+                                    >
+                                        {!isAvailable && (
+                                            <span className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+                                                <span className="block w-full h-[0.5px] bg-gray-400 rotate-45" />
+                                            </span>
+                                        )}
+                                        {isActive && isAvailable && (
+                                            <span className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+                                                <svg className="w-1.5 h-1.5 sm:w-2 sm:h-2" fill="none" viewBox="0 0 24 24" stroke={isLight ? '#374151' : 'white'} strokeWidth={4}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </span>
+                                        )}
+                                    </span>
                                 </button>
                             );
                         })}
