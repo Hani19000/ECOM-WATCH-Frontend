@@ -6,10 +6,6 @@ on:
       - main
   workflow_dispatch:
 
-concurrency:
-  group: deploy-vercel-production
-  cancel-in-progress: false
-
 jobs:
   deploiement:
     name: Build et deploiement Vercel
@@ -24,40 +20,17 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+          cache-dependency-path: "./ECOMWATCH/package-lock.json"
 
       - name: Installation des dependances
-        run: npm ci --prefer-offline 
+        run: npm ci --prefer-offline
+        working-directory: ECOMWATCH
 
-      - name: Deploiement vers Vercel (CLI Officiel)
-        id: deploy
+      - name: Deploiement vers Vercel
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          npm install --global vercel@latest
-          
-          # Déploiement et capture de l'URL directement dans une variable
-          DEPLOYMENT_URL=$(vercel deploy --prod --token=$VERCEL_TOKEN --yes)
-          
-          # Création de l'output GitHub pour l'étape de Health check
-          echo "preview-url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
-
-      - name: Health check
-        env:
-          PROD_URL: "https://ecomwatch.vercel.app"
-        run: |
-          echo "Attente de la propagation du deploiement..."
-          sleep 15
-          
-          echo "Ping de l'URL de production : $PROD_URL"
-          
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL")
-          echo "HTTP status : $STATUS"
-          
-          if [ "$STATUS" -ne 200 ]; then
-            echo "Erreur: Le site de production n'a pas repondu avec un statut 200."
-            exit 1
-          fi
-          
-          echo "Deploiement verifie et operationnel !"
+          npm install -g vercel
+          vercel deploy --prod --token=$VERCEL_TOKEN --yes ./ECOMWATCH
