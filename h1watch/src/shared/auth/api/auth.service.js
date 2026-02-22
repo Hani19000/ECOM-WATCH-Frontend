@@ -1,9 +1,3 @@
-/**
- * @module Service/Auth (Frontend)
- *
- * Gère les appels API liés à l'authentification.
- * Service Layer Pattern : pas de logique React ici, pas d'état.
- */
 import { api } from '../../../api/axios.config';
 
 export const authService = {
@@ -18,8 +12,8 @@ export const authService = {
     },
 
     async refresh() {
-        const response = await api.post('/auth/refresh');
-        return response.data.data;
+        const { data } = await api.post('/auth/refresh');
+        return data.data;
     },
 
     async logout() {
@@ -31,25 +25,20 @@ export const authService = {
         return data.data;
     },
 
-    /**
-     * Envoie un email de réinitialisation si l'email est associé à un compte.
-     * Le backend répond identiquement qu'un compte existe ou non.
-     *
-     * @param {string} email - Email de l'utilisateur
+    /*
+     * Déclenche l'envoi d'un email de réinitialisation.
+     * Le backend ne confirme pas l'existence de l'email pour prévenir les attaques par énumération.
      */
     async forgotPassword(email) {
         const { data } = await api.post('/auth/forgot-password', { email });
         return data;
     },
 
-    /**
-     * Consomme le token de reset et met à jour le mot de passe.
-     *
-     * @param {string} token       - Token brut extrait de l'URL du lien email
-     * @param {string} newPassword - Nouveau mot de passe choisi par l'utilisateur
+    /*
+     * Valide la modification du mot de passe via un jeton à usage unique.
      */
     async resetPassword(token, newPassword) {
         const { data } = await api.post('/auth/reset-password', { token, newPassword });
         return data;
-    },
+    }
 };

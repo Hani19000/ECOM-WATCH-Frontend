@@ -3,7 +3,8 @@ import { appConfig } from '../../../core/config/app';
 const STORAGE_KEY = appConfig.STORAGE_KEYS.GUEST_CART || 'h1watch_guest_cart';
 
 /**
- * Service gérant la persistance du panier "Invité" dans le navigateur.
+ * Service dédié au panier non-authentifié.
+ * Émet des événements globaux pour synchroniser les différents onglets du navigateur.
  */
 export const GuestCartService = {
     getCart() {
@@ -15,38 +16,32 @@ export const GuestCartService = {
         }
     },
 
-    /**
-     * Sauvegarde l'état complet du panier.
-     * @param {Array} items - Liste des items.
-     */
     saveCart(items) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        // Dispatch event pour synchronisation multi-onglets/composants
-        window.dispatchEvent(new Event('cartUpdated'));
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+            window.dispatchEvent(new Event('cartUpdated'));
+        } catch {
+            // Fail-safe
+        }
     },
 
-    /**
-     * Ajoute un item ou incrémente sa quantité s'il existe déjà.
-     * Gestion fine des variants pour éviter les doublons incorrects.
-     */
     addItem(product, quantity, variant = null) {
         const items = this.getCart();
-        // Création d'un ID unique composite pour identifier la ligne
         const variantId = variant?.id || variant?._id || null;
         const lineId = `${product._id}-${variantId || 'base'}`;
 
-        const existingIndex = items.findIndex(item =>
+        const existingItem = items.find(item =>
             item.productId === product._id &&
             ((!item.variant && !variant) || (item.variant?.id === variantId))
         );
 
-        if (existingIndex > -1) {
-            items[existingIndex].quantity += quantity;
+        if (existingItem) {
+            existingItem.quantity += quantity;
         } else {
             items.push({
-                lineId, // ID temporaire pour le frontend
+                lineId,
                 productId: product._id,
-                product: product, // On stocke tout l'objet pour l'affichage sans appel API
+                product,
                 variant,
                 quantity,
                 addedAt: new Date().toISOString()
@@ -59,13 +54,13 @@ export const GuestCartService = {
 
     updateItem(lineId, quantity) {
         let items = this.getCart();
+
         if (quantity <= 0) {
             items = items.filter(item => item.lineId !== lineId);
         } else {
-            items = items.map(item =>
-                item.lineId === lineId ? { ...item, quantity } : item
-            );
+            items = items.map(item => item.lineId === lineId ? { ...item, quantity } : item);
         }
+
         this.saveCart(items);
         return items;
     },
@@ -77,7 +72,11 @@ export const GuestCartService = {
     },
 
     clear() {
-        localStorage.removeItem(STORAGE_KEY);
-        window.dispatchEvent(new Event('cartUpdated'));
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+            window.dispatchEvent(new Event('cartUpdated'));
+        } catch {
+            // Fail-safe
+        }
     }
 };

@@ -11,8 +11,6 @@ import { CartBackupService } from '../api/Cartbackup.service';
  * - Restaure le panier si nécessaire
  * - Gère les états de restauration pour l'UI
  * 
- * ✅ VERSION FINALE : Utilise restoreCart du CartProvider
- * 
  * Utilisation :
  * ```jsx
  * const { isRestoring, restoredCount } = useCartRestore();
@@ -30,7 +28,6 @@ export const useCartRestore = ({
     autoRestore = true,
     onRestored = null
 } = {}) => {
-    // ✅ UTILISATION : restoreCart exposé par le CartProvider modifié
     const { restoreCart } = useCart();
 
     const [isRestoring, setIsRestoring] = useState(false);

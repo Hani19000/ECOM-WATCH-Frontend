@@ -23,3 +23,10 @@
 .animate-glow {
   animation: soft-glow 4s infinite ease-in-out;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+::-webkit-scrollbar {
+  display: none;
+}

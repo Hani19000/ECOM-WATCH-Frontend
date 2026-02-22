@@ -1,55 +1,46 @@
+import { useCallback } from 'react';
 import { useAuthStore } from './useAuthStore';
 import { authService } from '../api/auth.service';
 import { setAccessToken } from '../../../api/axios.config';
-import { useCallback } from 'react';
-import { useProfile } from '../../../apps/clients/features/user/hooks/useProfile'
+import { useProfile } from '../../../apps/clients/features/user/hooks/useProfile';
 import { GuestOrderService } from '../../../apps/clients/features/orders/api/GuestOrder.service';
+import logger from '../../../core/utils/logger';
 
 export const useAuth = () => {
     const { user, isAuthenticated, setInitialized, isInitialized, setUser, logout: clearStore } = useAuthStore();
     const { refetch } = useProfile();
 
-    const register = async (userData) => {
-        const result = await authService.register(userData);
-
-        setAccessToken(result.accessToken);
-        setUser(result.user);
-
-        // Au registre, on ne retire QUE les commandes liées à cet email spécifique
+    /*
+     * Synchronise le cache local des commandes invité avec la base de données.
+     * Permet au client de retrouver son historique s'il s'inscrit ou se connecte après un achat.
+     */
+    const syncGuestOrders = (result) => {
         if (result.claimedOrderNumbers?.length > 0) {
-            const { purged } = GuestOrderService.syncWithClaimed(result.claimedOrderNumbers);
-            console.log(`[useAuth] register → ${purged} commande(s) purgée(s) du localStorage guest`);
+            GuestOrderService.syncWithClaimed(result.claimedOrderNumbers);
+            logger.info('[useAuth] Commandes transférées, cache invité synchronisé');
         } else if (result.claimedOrders > 0) {
             GuestOrderService.clearAll();
-            console.log(`[useAuth] register → localStorage guest vidé (${result.claimedOrders} commande(s) rattachée(s))`);
+            logger.info('[useAuth] Cache invité purgé suite au rattachement total');
         }
 
         if (result.claimedOrders > 0) {
             setTimeout(() => refetch(), 1000);
         }
+    };
 
+    const register = async (userData) => {
+        const result = await authService.register(userData);
+        setAccessToken(result.accessToken);
+        setUser(result.user);
+        syncGuestOrders(result);
         return result.user;
     };
 
     const login = async (credentials) => {
-        // 1. On récupère le résultat complet
         const result = await authService.login(credentials);
-
         setAccessToken(result.accessToken);
         setUser(result.user);
-
-        if (result.claimedOrderNumbers?.length > 0) {
-            const { purged } = GuestOrderService.syncWithClaimed(result.claimedOrderNumbers);
-            console.log(`[useAuth] login → ${purged} commande(s) purgée(s) du localStorage guest`);
-        } else if (result.claimedOrders > 0) {
-            GuestOrderService.clearAll();
-            console.log(`[useAuth] login → localStorage guest vidé (${result.claimedOrders} commande(s) rattachée(s))`);
-        }
-
-        if (result.claimedOrders > 0) {
-            setTimeout(() => refetch(), 1000);
-        }
-
+        syncGuestOrders(result);
         return result.user;
     };
 
@@ -77,5 +68,5 @@ export const useAuth = () => {
         }
     }, [setUser, setInitialized]);
 
-    return { user, isAuthenticated, setInitialized, isInitialized, register, login, logout, checkAuth };
+    return { user, isAuthenticated, isInitialized, login, register, logout, checkAuth };
 };
