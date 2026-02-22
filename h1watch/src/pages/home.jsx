@@ -102,10 +102,10 @@ const Home = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                 </svg>
                             </div>
-                            <div className="h-[1px] w-full max-w-[60px] bg-gray-200 overflow-hidden">
-                                <div className="h-full w-full bg-black translate-x-[-100%] group-hover:translate-x-[0%] transition-transform duration-500 ease-out"></div>
+                            <div className="h-px w-full max-w-15 bg-gray-200 overflow-hidden">
+                                <div className="h-full w-full bg-black translate-x-full group-hover:translate-x-[0%] transition-transform duration-500 ease-out"></div>
                             </div>
-                            <span className="text-[8px] text-gray-400 font-medium uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                            <span className="text-[8px] text-gray-900 font-medium uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                                 {products.length}+ Modèles disponibles
                             </span>
                         </Link>
