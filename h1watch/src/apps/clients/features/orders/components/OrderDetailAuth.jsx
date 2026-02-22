@@ -50,33 +50,35 @@ const OrderDetailAuth = ({ orderId }) => {
                     Articles commandés
                 </h4>
                 <div className="space-y-6">
-                    {order.items?.map((item) => (
-                        <div key={item.id} className="flex justify-between items-center group">
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 bg-white rounded-lg border border-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center text-gray-300">
-                                    {item.image || item.imageUrl ? (
-                                        <img
-                                            src={item.image || item.imageUrl}
-                                            alt={item.productName}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <span className="text-[10px]">IMG</span>
-                                    )}
+                    {order.items?.map((item) => {
+                        const imageUrl = item.variantAttributes?.image || item.image || item.imageUrl;
+                        return (
+                            <div key={item.id} className="flex justify-between items-center group">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-16 h-16 bg-white rounded-lg border border-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center text-gray-300">
+                                        {imageUrl ? (
+                                            <img
+                                                src={imageUrl}
+                                                alt={item.productName}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span className="text-[10px]">IMG</span>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-900 group-hover:text-[#ADA996] transition-colors">
+                                            {item.productName}
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1">Quantité : {item.quantity}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    {/* Rendu texte natif React : pas de risque XSS */}
-                                    <p className="text-sm font-medium text-gray-900 group-hover:text-[#ADA996] transition-colors">
-                                        {item.productName}
-                                    </p>
-                                    <p className="text-xs text-gray-500 mt-1">Quantité : {item.quantity}</p>
-                                </div>
+                                <p className="text-sm font-medium text-gray-900">
+                                    {Number(item.unitPrice ?? item.priceAtPurchase).toFixed(2)}€
+                                </p>
                             </div>
-                            <p className="text-sm font-medium text-gray-900">
-                                {Number(item.unitPrice ?? item.priceAtPurchase).toFixed(2)}€
-                            </p>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
