@@ -5,24 +5,46 @@ import { usePaymentResult } from '../hooks/usePaymentResult';
 import { useCart } from '../../cart/hooks/useCart';
 import { CartBackupService } from '../../cart/api/Cartbackup.service';
 import { GuestOrderService } from '../../orders/api/GuestOrder.service';
+import { useAuthStore } from '../../../../../shared/auth/hooks/useAuthStore';
 import SEOHead from '../../../../../shared/SEO/SEOHead';
 
 /**
  * Page de confirmation de commande (UI Pure + Orchestration de nettoyage).
- * Garantit la synchronisation du localStorage invité et la purge du panier
- * uniquement si le paiement est confirmé.
+ *
+ * RÈGLE : GuestOrderService.addOrder ne doit être appelé QUE pour les guests.
+ * Un utilisateur connecté a user_id IS NOT NULL en base → l'API guest le
+ * rejetterait, et son historique provient de GET /users/me/orders (Bearer token).
+ *
+ * EXCEPTION INTENTIONNELLE : si un guest passe une commande puis se connecte/
+ * s'inscrit avec le même email, le serveur rattache automatiquement la commande
+ * via claimedOrderNumbers → GuestOrderService.syncWithClaimed() dans useAuth.
+ * Cette logique n'est PAS touchée ici.
  */
 const PaymentSuccess = () => {
     const { status, orderInfo } = usePaymentResult();
     const { clearCart, setIsDrawerOpen } = useCart();
+    const { isAuthenticated } = useAuthStore();
 
     useEffect(() => {
         if (status === 'success' && orderInfo) {
-            GuestOrderService.addOrder(orderInfo);
+            // ── FIX : on ne persiste dans le localStorage guest
+            //         QUE si l'utilisateur n'est pas connecté.
+            //
+            // AVANT : GuestOrderService.addOrder(orderInfo) sans condition
+            //         → les commandes des users connectés apparaissaient dans
+            //           l'historique guest (espace invité du profil).
+            //
+            // APRÈS : seuls les guests voient leur commande persistée localement.
+            //         Les users authentifiés récupèrent leur historique via
+            //         GET /users/me/orders (OrderHistory + useOrders).
+            if (!isAuthenticated) {
+                GuestOrderService.addOrder(orderInfo);
+            }
+
             clearCart();
             CartBackupService.clear();
         }
-    }, [status, orderInfo, clearCart]);
+    }, [status, orderInfo, clearCart, isAuthenticated]);
 
     <SEOHead
         title="Commande confirmée | ECOM-WATCH"
