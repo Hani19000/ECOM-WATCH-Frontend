@@ -1,10 +1,10 @@
 import { Mail, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuthForm } from '../../hooks/useAuthForm';
-import AuthHeader from '../../components/Auth/AuthHeader'
-import AuthInput from '../../components/Auth/AuthInput';
-import AuthActions from '../../components/Auth/AuthActions';
-import AuthFooter from '../../components/Auth/AuthFooter';
+import AuthHeader from './AuthHeader'
+import AuthInput from './AuthInput';
+import AuthActions from './AuthActions';
+import AuthFooter from './AuthFooter';
 
 const AuthForm = ({ mode = 'login' }) => {
     const {
