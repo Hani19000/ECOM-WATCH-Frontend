@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/sitemap-products.xml",
+      "destination": "https://ecom-watch.onrender.com/api/v1/sitemap-products.xml"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

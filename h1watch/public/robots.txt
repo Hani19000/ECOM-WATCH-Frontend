@@ -16,5 +16,5 @@ Disallow: /*?maxPrice=
 
 Allow: /assets/
 
-Sitemap: https://ecom-watch-frontend.vercel.app/sitemap.xml
-Sitemap: https://ecom-watch-frontend.vercel.app/sitemap-products.xml
+Sitemap: https://ecomwatch.vercel.app/sitemap.xml
+Sitemap: https://ecomwatch.vercel.app/sitemap-products.xml
