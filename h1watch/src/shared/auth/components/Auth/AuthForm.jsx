@@ -1,6 +1,6 @@
 import { Mail, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuthForm } from '../../hooks/useAuthForm';
+import { useAuthForm } from '../../hooks/useAuthForm'
 import AuthHeader from '../../components/Auth/AuthHeader'
 import AuthInput from '../../components/Auth/AuthInput';
 import AuthActions from '../../components/Auth/AuthActions';
