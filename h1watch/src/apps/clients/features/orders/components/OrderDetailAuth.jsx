@@ -53,8 +53,16 @@ const OrderDetailAuth = ({ orderId }) => {
                     {order.items?.map((item) => (
                         <div key={item.id} className="flex justify-between items-center group">
                             <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 bg-gray-100 flex items-center justify-center text-gray-300">
-                                    <span className="text-[10px]">IMG</span>
+                                <div className="w-16 h-16 bg-white rounded-lg border border-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center text-gray-300">
+                                    {item.image || item.imageUrl ? (
+                                        <img
+                                            src={item.image || item.imageUrl}
+                                            alt={item.productName}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <span className="text-[10px]">IMG</span>
+                                    )}
                                 </div>
                                 <div>
                                     {/* Rendu texte natif React : pas de risque XSS */}
