@@ -3,21 +3,6 @@ import { useCart } from './useCart';
 import { CartBackupService } from '../api/Cartbackup.service';
 
 /**
- * Hook de restauration automatique du panier après annulation de paiement.
- * 
- * Architecture : Custom Hook Pattern
- * - S'exécute automatiquement au montage du composant
- * - Détecte la présence d'un backup
- * - Restaure le panier si nécessaire
- * - Gère les états de restauration pour l'UI
- * 
- * Utilisation :
- * ```jsx
- * const { isRestoring, restoredCount } = useCartRestore();
- * 
- * if (isRestoring) return <Loader />;
- * if (restoredCount > 0) return <Message>Panier restauré</Message>;
- * ```
  * 
  * @param {Object} options - Configuration
  * @param {boolean} options.autoRestore - Active la restauration auto (défaut: true)

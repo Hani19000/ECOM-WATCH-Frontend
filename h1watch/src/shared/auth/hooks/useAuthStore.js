@@ -5,7 +5,7 @@ export const useAuthStore = create((set) => ({
     isAuthenticated: false,
     isInitialized: false,
 
-    setInitialized: (isInitialized) => set({ isInitialized }),
+    setInitialized: (value) => set({ isInitialized: value }),
 
     setUser: (user) => set({
         user,
@@ -13,9 +13,5 @@ export const useAuthStore = create((set) => ({
         isInitialized: true
     }),
 
-    logout: () => set({
-        user: null,
-        isAuthenticated: false,
-        isInitialized: true
-    })
+    logout: () => set({ user: null, isAuthenticated: false, isInitialized: true }),
 }));
