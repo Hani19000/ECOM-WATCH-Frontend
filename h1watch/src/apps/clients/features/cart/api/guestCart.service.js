@@ -1,4 +1,4 @@
-import { appConfig } from '../../../core/config/app';
+import { appConfig } from "../../../../../core/config/app";
 
 const STORAGE_KEY = appConfig.STORAGE_KEYS.GUEST_CART || 'h1watch_guest_cart';
 
