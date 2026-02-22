@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
  * ProductGallery
  * Gère l'affichage et le zoom interactif des produits.
  * Résout le problème de scroll de page parasite via un listener natif non-passif.
+ * Intègre le support complet des gestes tactiles (mobile/tablette).
  */
 export const ProductGallery = ({ mainImage, activeVariantImage }) => {
     // --- ÉTAT ---
@@ -31,7 +32,6 @@ export const ProductGallery = ({ mainImage, activeVariantImage }) => {
     const handleZoomIn = () => setZoomLevel(prev => Math.min(MAX_ZOOM, prev + 0.5));
     const handleZoomOut = () => setZoomLevel(prev => Math.max(MIN_ZOOM, prev - 0.5));
 
-    // ✅ FIX : Gestion du scroll de la page
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
@@ -56,15 +56,33 @@ export const ProductGallery = ({ mainImage, activeVariantImage }) => {
         };
     }, [MAX_ZOOM, MIN_ZOOM]);
 
-    // Suivi du mouvement de la souris pour le point d'origine du zoom
+    // --- GESTION DU FOCUS (Desktop & Mobile) ---
+
+    // Fonction utilitaire pour calculer le point de focus (souris ou doigt)
+    const updateFocusPoint = (clientX, clientY, currentTarget) => {
+        const rect = currentTarget.getBoundingClientRect();
+        // Math.max et Math.min empêchent l'image de sortir du cadre sur les bords
+        const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+        const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+        setMousePosition({ x, y });
+    };
+
+    // Suivi du curseur (Desktop)
     const handleMouseMove = (e) => {
         if (!isZoomed) return;
+        updateFocusPoint(e.clientX, e.clientY, e.currentTarget);
+    };
 
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
+    // Suivi du glissement de doigt (Mobile)
+    const handleTouchMove = (e) => {
+        if (!isZoomed || e.touches.length === 0) return;
+        updateFocusPoint(e.touches[0].clientX, e.touches[0].clientY, e.currentTarget);
+    };
 
-        setMousePosition({ x, y });
+    // Début du toucher (évite un "saut" de l'image quand on pose le doigt)
+    const handleTouchStart = (e) => {
+        if (!isZoomed || e.touches.length === 0) return;
+        updateFocusPoint(e.touches[0].clientX, e.touches[0].clientY, e.currentTarget);
     };
 
     return (
@@ -74,7 +92,11 @@ export const ProductGallery = ({ mainImage, activeVariantImage }) => {
                 ref={containerRef}
                 className={`relative aspect-square overflow-hidden rounded-3xl md:rounded-[40px] bg-linear-to-br from-transparent to-gray-20/30 border border-gray-900 shadow-2xl shadow-gray-20/50 transition-all duration-500 ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'
                     }`}
+                // L'astuce vitale pour l'UX mobile : empêche la page de scroller quand on explore l'image zoomée
+                style={{ touchAction: isZoomed ? 'none' : 'auto' }}
                 onMouseMove={handleMouseMove}
+                onTouchMove={handleTouchMove}
+                onTouchStart={handleTouchStart}
                 onClick={() => isZoomed && handleResetZoom()}
             >
                 {/* Skeleton Loader */}
