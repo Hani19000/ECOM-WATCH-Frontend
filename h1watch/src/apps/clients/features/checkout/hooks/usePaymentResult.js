@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../../../../../api/axios.config';
 import logger from '../../../../../core/utils/logger';
 
@@ -102,4 +103,44 @@ export const usePaymentResult = () => {
     }, []);
 
     return { status, orderInfo };
+};
+
+/**
+ * Hook pour annuler la commande et libérer le stock lors d'une annulation Stripe.
+ */
+export const usePaymentCancel = () => {
+    const [searchParams] = useSearchParams();
+    const orderId = searchParams.get('orderId');
+    const hasCalled = useRef(false);
+
+    useEffect(() => {
+        // Idempotence : un seul appel même en StrictMode
+        if (!orderId || hasCalled.current) return;
+        hasCalled.current = true;
+
+        const releaseStock = async () => {
+            try {
+                // Récupération de l'email depuis sessionStorage (posé par useCheckout)
+                const stored = sessionStorage.getItem('h1_pending_order');
+                const email = stored ? JSON.parse(stored)?.email : null;
+
+                await api.post(`/orders/${orderId}/cancel`, { email });
+
+                // Nettoyage du sessionStorage après annulation confirmée
+                sessionStorage.removeItem('h1_pending_order');
+                logger.info(`[usePaymentCancel] Stock libéré — orderId: ${orderId}`);
+
+            } catch (error) {
+                // On log sans bloquer l'UX : le webhook Stripe prendra le relais
+                logger.warn('[usePaymentCancel] Libération du stock en attente du webhook Stripe', {
+                    orderId,
+                    status: error.response?.status,
+                });
+            }
+        };
+
+        releaseStock();
+    }, [orderId]);
+
+    return { orderId };
 };

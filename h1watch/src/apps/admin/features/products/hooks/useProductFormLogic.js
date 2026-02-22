@@ -4,9 +4,10 @@ import toast from 'react-hot-toast';
 
 export const useProductFormLogic = (productId, isOpen, onClose, onSuccess) => {
     const [categories, setCategories] = useState([]);
-    const [variants, setVariants] = useState([]); // NOUVEAU : Stocker les variantes
+    const [variants, setVariants] = useState([]);
     const [formData, setFormData] = useState({
-        name: '', slug: '', description: '', status: 'DRAFT', categoryIds: '',
+        name: '', slug: '', description: '', status: 'DRAFT',
+        categoryIds: [],
         sku: '', price: '', size: '', color: '', initialStock: '0'
     });
     const [imageFile, setImageFile] = useState(null);
@@ -24,9 +25,9 @@ export const useProductFormLogic = (productId, isOpen, onClose, onSuccess) => {
 
                 if (productId && productId !== 'new') {
                     const product = await AdminProductService.getOne(productId);
-                    const defaultCategoryId = product?.categories?.[0]?.id || '';
 
-                    // On récupère les variantes pour les afficher dans le tiroir
+                    const productCategoryIds = product?.categories?.map(c => c.id) || [];
+
                     const productVariants = product?.variants || product?.variantsPreview || product?.variants_preview || [];
                     setVariants(Array.isArray(productVariants) ? productVariants : []);
 
@@ -35,13 +36,14 @@ export const useProductFormLogic = (productId, isOpen, onClose, onSuccess) => {
                         slug: product?.slug || '',
                         description: product?.description || '',
                         status: product?.status || 'DRAFT',
-                        categoryIds: defaultCategoryId,
+                        categoryIds: productCategoryIds, // <-- Tableau d'IDs
                         sku: '', price: '', size: '', color: '', initialStock: '0'
                     });
                 } else {
                     setVariants([]);
                     setFormData({
-                        name: '', slug: '', description: '', status: 'DRAFT', categoryIds: '',
+                        name: '', slug: '', description: '', status: 'DRAFT',
+                        categoryIds: [], // <-- Tableau vide
                         sku: '', price: '', size: '', color: '', initialStock: '0'
                     });
                 }
@@ -55,10 +57,16 @@ export const useProductFormLogic = (productId, isOpen, onClose, onSuccess) => {
         initForm();
     }, [productId, isOpen, onClose]);
 
+    // <-- MODIFICATION : Prise en charge du select "multiple"
     const handleChange = useCallback((e) => {
-        const { name, value } = e.target;
+        const { name, value, type, selectedOptions } = e.target;
+
+        const finalValue = type === 'select-multiple'
+            ? Array.from(selectedOptions, option => option.value)
+            : value;
+
         setFormData(prev => ({
-            ...prev, [name]: value,
+            ...prev, [name]: finalValue,
             ...(name === 'name' && productId === 'new' ? { slug: value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') } : {})
         }));
     }, [productId]);
@@ -79,8 +87,12 @@ export const useProductFormLogic = (productId, isOpen, onClose, onSuccess) => {
                 payload.append('description', formData.description);
                 payload.append('status', formData.status);
 
-                if (formData.categoryIds) {
-                    payload.append('categoryIds', formData.categoryIds);
+                // <-- MODIFICATION : Boucle pour ajouter chaque catégorie au FormData
+                // C'est indispensable pour que ton backend comprenne que c'est un tableau
+                if (formData.categoryIds && formData.categoryIds.length > 0) {
+                    formData.categoryIds.forEach(id => {
+                        payload.append('categoryIds', id);
+                    });
                 }
 
                 if (imageFile) payload.append('image', imageFile);
@@ -99,7 +111,7 @@ export const useProductFormLogic = (productId, isOpen, onClose, onSuccess) => {
                     slug: formData.slug,
                     description: formData.description,
                     status: formData.status,
-                    categoryIds: formData.categoryIds ? [formData.categoryIds] : []
+                    categoryIds: formData.categoryIds
                 };
 
                 await AdminProductService.update(productId, payload);

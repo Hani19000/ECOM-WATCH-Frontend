@@ -9,19 +9,6 @@ import { GuestOrderService } from '../../orders/api/GuestOrder.service';
 import { useAuthStore } from '../../../../../shared/auth/hooks/useAuthStore';
 import SEOHead from '../../../../../shared/SEO/SEOHead';
 
-/**
- * Page de confirmation de commande (UI Pure + Orchestration de nettoyage).
- *
- * FIX STOCK :
- * Après un paiement réussi, le backend décrémente le stock en base.
- * Mais React Query conservait en cache les anciennes données produit (staleTime).
- * Résultat : la fiche produit continuait d'afficher l'ancien stock pendant
- * plusieurs minutes après l'achat.
- *
- * queryClient.invalidateQueries() force React Query à considérer toutes les
- * données ['products'] et ['product'] comme périmées. Au prochain affichage
- * d'une fiche produit ou du catalogue, une requête fraîche sera émise.
- */
 const PaymentSuccess = () => {
     const { status, orderInfo } = usePaymentResult();
     const { clearCart, setIsDrawerOpen } = useCart();
@@ -30,17 +17,12 @@ const PaymentSuccess = () => {
 
     useEffect(() => {
         if (status === 'success' && orderInfo) {
-            // Persiste uniquement pour les guests (les users ont leur historique côté serveur)
             if (!isAuthenticated) {
                 GuestOrderService.addOrder(orderInfo);
             }
 
             clearCart();
             CartBackupService.clear();
-
-            // ── FIX STOCK : invalidation du cache React Query ─────────────────
-            // Invalide toutes les requêtes produit pour que le stock s'actualise
-            // dès la prochaine visite d'une fiche produit ou du catalogue.
             queryClient.invalidateQueries({ queryKey: ['products'] });
             queryClient.invalidateQueries({ queryKey: ['product'] });
         }

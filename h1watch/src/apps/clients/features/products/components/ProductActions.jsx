@@ -50,7 +50,7 @@ const ProductActions = ({ name = "Produit", variants = [], selectedVariant, onVa
                     <div className="flex flex-wrap gap-3" role="group" aria-label="Choisir une taille">
                         {availableSizes.map(size => {
                             const sizeVariant = variants.find(v => v.attributes?.size === size);
-                            // ✅ FIX : ?? au lieu de ||
+
                             const sizeStock = sizeVariant?.inventory?.availableStock
                                 ?? sizeVariant?.inventory?.available_stock
                                 ?? 0;
@@ -109,7 +109,7 @@ const ProductActions = ({ name = "Produit", variants = [], selectedVariant, onVa
                     <div className="flex gap-4" role="group" aria-label="Choisir une finition">
                         {availableColors.map(color => {
                             const colorVariant = variants.find(v => v.attributes?.color === color);
-                            // ✅ FIX : ?? au lieu de ||
+
                             const colorStock = colorVariant?.inventory?.availableStock
                                 ?? colorVariant?.inventory?.available_stock
                                 ?? 0;
@@ -228,7 +228,7 @@ const ProductActions = ({ name = "Produit", variants = [], selectedVariant, onVa
 
                 {/* Informations de stock */}
                 <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.25em]">
-                    <span className={hasStock ? 'text-gray-400' : 'text-red-500 font-bold'}>
+                    <span className={hasStock ? 'text-gray-800 font-bold' : 'text-red-500 font-bold'}>
                         {hasStock
                             ? `${maxStock} pièce${maxStock > 1 ? 's' : ''} disponible${maxStock > 1 ? 's' : ''}`
                             : 'Indisponible en réserve'

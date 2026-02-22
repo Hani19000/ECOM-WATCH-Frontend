@@ -35,16 +35,24 @@ const ProductInfoSection = ({ formData, handleChange, categories }) => (
         {/* Responsive Grid : 1 colonne sur mobile, 2 sur desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5 transition-colors">Catégorie</label>
+                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5 transition-colors">Catégories</label>
                 <select
+                    multiple
+                    size={4}
                     name="categoryIds"
                     value={formData.categoryIds}
                     onChange={handleChange}
-                    className="w-full px-3 py-2.5 sm:py-2 bg-gray-50 dark:bg-slate-800/50 border border-transparent dark:border-dark-border rounded-lg text-sm text-gray-900 dark:text-white focus:bg-white dark:focus:bg-dark-card focus:border-gray-300 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/20 transition-all"
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800/50 border border-transparent dark:border-dark-border rounded-lg text-sm text-gray-900 dark:text-white focus:bg-white dark:focus:bg-dark-card focus:border-gray-300 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/20 transition-all custom-scrollbar"
                 >
-                    <option value="">Sélectionner...</option>
-                    {Array.isArray(categories) && categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                    {Array.isArray(categories) && categories.map(cat => (
+                        <option key={cat.id} value={cat.id} className="py-1 px-1">
+                            {cat.name}
+                        </option>
+                    ))}
                 </select>
+                <p className="mt-1.5 text-[9px] text-gray-700 dark:text-gray-200 italic">
+                    Maintenez Ctrl (ou Cmd ⌘) pour sélectionner plusieurs catégories.
+                </p>
             </div>
             <div>
                 <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5 transition-colors">Statut</label>
@@ -89,8 +97,8 @@ const InitialVariantSection = ({ formData, handleChange, handleImageChange, imag
         <div>
             <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5 transition-colors">Image Principale</label>
             <label className={`flex flex-col items-center justify-center w-full h-24 sm:h-28 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${imageFile
-                    ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20'
-                    : 'border-gray-300 dark:border-dark-border bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20'
+                : 'border-gray-300 dark:border-dark-border bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-slate-800/50'
                 }`}>
                 <span className="text-xs text-center px-4 truncate w-full">
                     {imageFile ? (
