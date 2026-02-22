@@ -78,7 +78,18 @@ const OrderDetailView = ({ order, getStatusLabel }) => (
 );
 
 const OrderItem = ({ item }) => {
-    const imageUrl = item.variantAttributes?.image || item.image || item.imageUrl;
+    // 1. Extraction et parsing sécurisé des attributs
+    let attributes = item.variantAttributes;
+    if (typeof attributes === 'string') {
+        try {
+            attributes = JSON.parse(attributes);
+        } catch (error) {
+            console.warn("Erreur de lecture des attributs de la commande", error);
+        }
+    }
+
+    // 2. Récupération de l'image
+    const imageUrl = attributes?.image || item.image || item.imageUrl;
 
     return (
         <div className="flex justify-between items-center group">
@@ -107,7 +118,6 @@ const OrderItem = ({ item }) => {
         </div>
     );
 };
-
 const OrderTotals = ({ totalAmount }) => (
     <div className="border-t border-gray-100 pt-6 space-y-2">
         <div className="flex justify-between text-sm text-gray-500">

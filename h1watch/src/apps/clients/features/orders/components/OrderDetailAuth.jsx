@@ -51,7 +51,19 @@ const OrderDetailAuth = ({ orderId }) => {
                 </h4>
                 <div className="space-y-6">
                     {order.items?.map((item) => {
-                        const imageUrl = item.variantAttributes?.image || item.image || item.imageUrl;
+                        // 1. Extraction et parsing sécurisé des attributs
+                        let attributes = item.variantAttributes;
+                        if (typeof attributes === 'string') {
+                            try {
+                                attributes = JSON.parse(attributes);
+                            } catch (error) {
+                                console.warn("Erreur de lecture des attributs de la commande", error);
+                            }
+                        }
+
+                        // 2. Récupération de l'image
+                        const imageUrl = attributes?.image || item.image || item.imageUrl;
+
                         return (
                             <div key={item.id} className="flex justify-between items-center group">
                                 <div className="flex items-center gap-4">
