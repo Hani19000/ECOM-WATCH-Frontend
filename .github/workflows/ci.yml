@@ -1,19 +1,20 @@
 # ============================================================
-# PIPELINE CI — INTÉGRATION CONTINUE (Validation Pull Request)
-# Déclenchement : à chaque PR vers `main` ou `develop`
+# PIPELINE CI — INTÉGRATION CONTINUE (Validation Frontend)
 # Stack : React + Vite + Tailwind v4 | Hébergement : Vercel
 # ============================================================
 
 name: "CI — Validation Frontend"
 
 on:
+  push:
+    branches:
+      - main
+      - develop
   pull_request:
     branches:
       - main
       - develop
-    paths:
-      - "**"
-      - ".github/workflows/ci.yml"
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -24,9 +25,6 @@ permissions:
   pull-requests: write
 
 jobs:
-  # ════════════════════════════════════════════════════════════
-  # JOB 1 : AUDIT DE SÉCURITÉ
-  # ════════════════════════════════════════════════════════════
   audit-securite:
     name: "Audit de sécurité (npm audit)"
     runs-on: ubuntu-latest
@@ -38,7 +36,6 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: package-lock.json 
 
       - name: "Installation des dépendances"
         run: npm ci --prefer-offline
@@ -46,7 +43,6 @@ jobs:
       - name: "Scan de vulnérabilités"
         run: npm audit --audit-level=high
         continue-on-error: true
-        id: audit-result
 
       - name: "Archivage du rapport d'audit"
         run: npm audit --json > audit-report.json || true
@@ -58,9 +54,6 @@ jobs:
           path: audit-report.json 
           retention-days: 30
 
-  # ════════════════════════════════════════════════════════════
-  # JOB 2 : LINTING
-  # ════════════════════════════════════════════════════════════
   linting:
     name: "Linting ESLint"
     runs-on: ubuntu-latest
@@ -72,16 +65,12 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: package-lock.json
 
       - run: npm ci --prefer-offline
 
       - name: "Exécution ESLint"
         run: npm run lint
 
-  # ════════════════════════════════════════════════════════════
-  # JOB 3 : BUILD DE VALIDATION (Vite + Tailwind v4)
-  # ════════════════════════════════════════════════════════════
   build-validation:
     name: "Build Vite + Tailwind v4"
     runs-on: ubuntu-latest
@@ -94,7 +83,6 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: package-lock.json
 
       - run: npm ci --prefer-offline
 
@@ -117,9 +105,6 @@ jobs:
           echo "=== Top 5 fichiers les plus lourds ==="
           find dist/assets -type f | xargs ls -lh 2>/dev/null | sort -k5 -rh | head -5
 
-  # ════════════════════════════════════════════════════════════
-  # JOB 4 : COMMENTAIRE RÉSUMÉ SUR LA PR
-  # ════════════════════════════════════════════════════════════
   rapport-pr:
     name: "Résumé sur la PR"
     runs-on: ubuntu-latest
