@@ -12,7 +12,13 @@ const ProductGrid = ({
     refetch,
     selectedVariants,
     onVariantChange,
-    variant = 'default'
+    variant = 'default',
+    /*
+     * prioritizeFirstCard : transmis depuis Home pour signaler que la première
+     * carte est l'élément LCP de la page. ProductCard ajoutera alors
+     * fetchPriority="high" + loading="eager" sur son image.
+     */
+    prioritizeFirstCard = false,
 }) => {
     const productsList = Array.isArray(products) ? products : [];
 
@@ -39,12 +45,18 @@ const ProductGrid = ({
 
     return (
         <div className={gridCols}>
-            {productsList.map((product) => (
+            {productsList.map((product, index) => (
                 <CardComponent
                     key={product.id || product._id || product.slug}
                     product={product}
                     persistedVariant={selectedVariants[product.id]}
                     onVariantChange={(variant) => onVariantChange(product.id, variant)}
+                    /*
+                     * La première carte reçoit isLCP=true uniquement quand
+                     * prioritizeFirstCard est activé (homepage uniquement).
+                     * Les autres cartes gardent le comportement lazy par défaut.
+                     */
+                    isLCP={prioritizeFirstCard && index === 0}
                 />
             ))}
         </div>
