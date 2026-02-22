@@ -5,8 +5,7 @@ import { CatalogueHeader } from '../components/CatalogueHeader';
 import { CategoryTabs } from '../components/CategoryTabs';
 import SEOHead from '../../../../../shared/SEO/SEOHead';
 import { buildCatalogueSchema } from '../../../../../shared/SEO/seoSchemas';
-
-const BASE_URL = 'https://ecom-watch.fr';
+import { env } from '../../../../../core/config/env';
 
 export default function Catalogue() {
     const { state, data, actions } = useCatalogueLogic();
@@ -23,13 +22,9 @@ export default function Catalogue() {
             ? `Découvrez notre sélection de montres ${state.activeCategoryName.toLowerCase()}. Authenticité certifiée, garantie 2 ans, livraison sécurisée.`
             : `Explorez notre collection complète de ${data.filteredProducts.length} montres de prestige. Haute horlogerie, éditions limitées, authenticité garantie.`;
 
-    /*
-     * L'URL canonique ignore volontairement les paramètres de prix ou de recherche.
-     * Prévient la dilution du budget de crawl SEO (Duplicate Content).
-     */
     const canonicalUrl = state.urlCategory !== 'all'
-        ? `${BASE_URL}/catalogue?category=${state.urlCategory}`
-        : `${BASE_URL}/catalogue`;
+        ? `${env.CLIENT_URL}/catalogue?category=${state.urlCategory}`
+        : `${env.CLIENT_URL}/catalogue`;
 
     const shouldNoIndex = state.urlMinPrice > state.dataMinPrice || state.urlMaxPrice < state.dataMaxPrice;
 
@@ -66,7 +61,6 @@ export default function Catalogue() {
                 />
 
                 <main className="flex flex-col lg:flex-row gap-8 lg:gap-12 mt-8">
-                    {/* Sidebar Desktop */}
                     <aside className="hidden lg:block w-72 flex-shrink-0" aria-label="Filtres produits">
                         <div className="sticky top-32">
                             <ProductFilters
@@ -84,17 +78,13 @@ export default function Catalogue() {
                         </div>
                     </aside>
 
-                    {/* Drawer Mobile (Côté droit) */}
                     {state.isFiltersDrawerOpen && (
                         <div className="lg:hidden fixed inset-0 z-50 flex justify-end overflow-hidden">
-                            {/* Backdrop */}
                             <div
                                 className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
                                 onClick={() => actions.setIsFiltersDrawerOpen(false)}
                                 aria-hidden="true"
                             />
-
-                            {/* Panel */}
                             <aside className="relative w-[85%] max-w-sm h-full bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
                                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                                     <h2 className="text-sm font-bold uppercase tracking-widest text-gray-900">
