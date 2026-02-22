@@ -73,13 +73,16 @@ export const useProductFormLogic = (productId, isOpen, onClose, onSuccess) => {
 
         try {
             if (productId === 'new') {
-                // CREATION : FormData car on a une image et multer est actif
                 const payload = new FormData();
                 payload.append('name', formData.name);
                 payload.append('slug', formData.slug);
                 payload.append('description', formData.description);
                 payload.append('status', formData.status);
-                if (formData.categoryIds) payload.append('categoryIds', JSON.stringify([formData.categoryIds]));
+
+                if (formData.categoryIds) {
+                    payload.append('categoryIds', formData.categoryIds);
+                }
+
                 if (imageFile) payload.append('image', imageFile);
 
                 const variantData = {
@@ -91,7 +94,6 @@ export const useProductFormLogic = (productId, isOpen, onClose, onSuccess) => {
                 await AdminProductService.create(payload);
                 toast.success('Produit créé avec succès');
             } else {
-                // MODIFICATION : JSON pur car la route backend n'a pas multer
                 const payload = {
                     name: formData.name,
                     slug: formData.slug,
