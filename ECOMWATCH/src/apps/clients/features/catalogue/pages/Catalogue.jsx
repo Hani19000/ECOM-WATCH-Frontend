@@ -103,7 +103,7 @@ export default function Catalogue() {
                         {/* Panel */}
                         <aside
                             className={`lg:hidden fixed top-0 right-0 h-full z-[101] 
-                                w-[85%] sm:w-[400px] bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)] 
+                                w-[85%] sm:w-100 bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)] 
                                 rounded-l-[30px] sm:rounded-l-none flex flex-col
                                 transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                                 ${state.isFiltersDrawerOpen ? "translate-x-0" : "translate-x-full"}
