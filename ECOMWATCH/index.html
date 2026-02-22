@@ -66,13 +66,12 @@
     <meta name="theme-color" content="#1A1A19" />
 
     <!--
-      Performance : connexions aux domaines critiques
+      Performance : connexions anticipées aux domaines critiques
       ─────────────────────────────────────────────────────────────────────────
-      preconnect  → ouvre le handshake TCP+TLS dès le parsing du HTML,
-                    avant que le navigateur ait découvert les ressources.
-      dns-prefetch → résolution DNS uniquement (fallback pour les navigateurs
-                    qui ne supportent pas preconnect, ou pour les domaines
-                    moins critiques).
+      preconnect   → ouvre le handshake TCP+TLS dès le parsing du HTML,
+                     avant que le navigateur découvre les ressources concernées.
+      dns-prefetch → résolution DNS seule (fallback navigateurs sans preconnect,
+                     ou domaines moins prioritaires).
     -->
     <link rel="preconnect" href="https://ecom-watch.onrender.com" crossorigin />
     <link rel="dns-prefetch" href="https://ecom-watch.onrender.com" />
@@ -81,13 +80,17 @@
     <link rel="preconnect" href="https://js.stripe.com" />
 
     <!--
-      Performance : hero image (LCP desktop)
+      Performance : preload de l'image hero (LCP desktop)
       ─────────────────────────────────────────────────────────────────────────
-      Le navigateur découvre le <img src={featured}> tard (après parsing JS + React).
-      Ce <link rel="preload"> le rend découvrable dès le HTML initial,
-      ce qui est exactement ce qu'indique l'audit "LCP request discovery".
-      - as="image"       → priorisé comme ressource image par le scheduler
-      - fetchpriority="high" → force la priorité maximale dans la file réseau
+      Sans ce preload, le navigateur découvre l'image hero tardivement :
+      il doit d'abord parser le HTML → exécuter le JS → monter React → rendre
+      le composant → seulement alors découvrir la balise <img>.
+
+      Ce <link rel="preload"> rend l'image découvrable dès le HTML brut,
+      ce qui corrige l'audit Lighthouse "LCP request discovery".
+
+      Note : fetchpriority="high" est un attribut HTML standard (pas une prop React),
+      il s'écrit en minuscules dans le HTML statique.
     -->
     <link
       rel="preload"
@@ -97,31 +100,7 @@
       fetchpriority="high"
     />
 
-    <!--
-      Performance : réduction du render-blocking CSS (audit image 3)
-      ─────────────────────────────────────────────────────────────────────────
-      Vite génère un bundle CSS unique injecté via <link rel="stylesheet">.
-      On ne peut pas supprimer ce comportement sans éjecter la config,
-      mais on peut réduire son impact en utilisant `media="print"` + swap :
-      le navigateur charge le CSS sans bloquer le rendu, puis l'applique.
-
-      IMPORTANT : ce pattern doit correspondre exactement au nom de fichier
-      généré par Vite (ex: index-DUHDP81y.css). Ce nom change à chaque build.
-      La solution propre est de configurer Vite pour chunker le CSS critique
-      (voir vite.config.js). Cette balise est un complément, pas un remplacement.
-    -->
-
-    <!--
-      Performance : modulepreload du bundle principal (unused JS image 5)
-      ─────────────────────────────────────────────────────────────────────────
-      <link rel="modulepreload> charge et parse le bundle JS en parallèle
-      dès le HTML, avant que le navigateur ait évalué <script type="module">.
-      Combiné avec le code splitting Vite (voir vite.config.js), cela réduit
-      le JS inutilisé en ne chargeant que les chunks nécessaires à la route active.
-    -->
-    <link rel="modulepreload" href="/src/app/main.jsx" />
-
-    <!-- Structured Data : boutique + moteur de recherche interne -->
+    <!-- Structured Data : boutique -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -144,6 +123,7 @@
       }
     </script>
 
+    <!-- Structured Data : moteur de recherche interne -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
