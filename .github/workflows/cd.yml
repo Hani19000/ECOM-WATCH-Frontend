@@ -4,18 +4,29 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "ECOMWATCH/**"
+      - ".github/workflows/cd.yml"
   workflow_dispatch:
+
+# Garantit qu'un seul déploiement de production a lieu en même temps
+concurrency:
+  group: deploy-vercel-production
+  cancel-in-progress: false
 
 jobs:
   deploiement:
-    name: Build et deploiement Vercel
+    name: Build et Deploiement Vercel
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ECOMWATCH
 
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Configuration de Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -24,7 +35,6 @@ jobs:
 
       - name: Installation des dependances
         run: npm ci --prefer-offline
-        working-directory: ECOMWATCH
 
       - name: Deploiement vers Vercel
         env:
@@ -32,5 +42,5 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          npm install -g vercel
+          npm install -g vercel@latest
           vercel deploy --prod --token=$VERCEL_TOKEN --yes

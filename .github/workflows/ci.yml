@@ -1,36 +1,55 @@
-name: "CI — Validation Frontend"
+name: CI - Validation Frontend
 
 on:
   push:
     branches: [main, develop]
+    paths:
+      - "ECOMWATCH/**"
+      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main, develop]
+    paths:
+      - "ECOMWATCH/**"
+      - ".github/workflows/ci.yml"
   workflow_dispatch:
 
-jobs:
-  build-validation:
-    name: "Build Vite + Tailwind v4"
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
+# Annule les exécutions précédentes si un nouveau commit est poussé sur la même branche
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
-      - uses: actions/setup-node@v4
+jobs:
+  validation:
+    name: Validation et Build
+    runs-on: ubuntu-latest
+    # Définit le dossier de travail par défaut pour toutes les commandes 'run' de ce job
+    defaults:
+      run:
+        working-directory: ./ECOMWATCH
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: "./ECOMWATCH/package-lock.json"
 
-      - name: "Installation"
+      - name: Installation des dependances
         run: npm ci --prefer-offline
-        working-directory: ECOMWATCH
 
-      - name: "Linting"
+      - name: Audit de securite
+        # 'continue-on-error' permet au pipeline de ne pas échouer totalement si des failles mineures sont trouvées
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Linting du code
         run: npm run lint
-        working-directory: ECOMWATCH
 
-      - name: "Build"
+      - name: Test de compilation (Build)
         run: npm run build
-        working-directory: ECOMWATCH
         env:
           NODE_ENV: production
