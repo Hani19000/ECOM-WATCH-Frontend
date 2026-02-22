@@ -9,8 +9,6 @@ export const dashboardService = {
 
     async getStats() {
         const { data } = await api.get('/admin/stats');
-        // CORRECTION : Si ton backend renvoie directement les stats dans data.data
-        // on utilise un fallback logique (||) pour éviter le 'undefined'
         return data.data?.stats || data.data;
     },
 

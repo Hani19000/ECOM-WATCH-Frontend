@@ -12,19 +12,6 @@ const transformProductData = (p) => {
         mainImage: p.mainImage || p.image?.url || p.imageUrl,
 
         variantsPreview: Array.isArray(rawVariants) ? rawVariants.map(v => {
-            // ✅ FIX : Utilisation de ?? (nullish coalescing) au lieu de ||
-            //
-            // AVANT (bugué) :
-            //   const stockValue = v.inventory?.available_stock || v.inventory?.availableStock || v.stock || ...
-            //
-            // PROBLÈME : || traite 0 comme falsy → si available_stock = 0, il passe
-            // au fallback suivant (v.stock) qui peut contenir le stock TOTAL brut (ex: 23).
-            // Résultat : ProductDetail affichait 23 de stock disponible malgré un stock réel à 0.
-            //
-            // ?? ne passe au fallback que si la valeur est null ou undefined (pas si c'est 0).
-            // Priorité : available_stock (snake_case backend) → availableStock (camelCase) → 0
-            // On exclut v.stock et v.availableStock (racine) car ils représentent souvent
-            // le stock TOTAL, pas le stock DISPONIBLE retourné par l'endpoint /products/:slug.
             const stockValue =
                 v.inventory?.available_stock ??
                 v.inventory?.availableStock ??

@@ -87,8 +87,6 @@ export const useProductFormLogic = (productId, isOpen, onClose, onSuccess) => {
                 payload.append('description', formData.description);
                 payload.append('status', formData.status);
 
-                // <-- MODIFICATION : Boucle pour ajouter chaque catégorie au FormData
-                // C'est indispensable pour que ton backend comprenne que c'est un tableau
                 if (formData.categoryIds && formData.categoryIds.length > 0) {
                     formData.categoryIds.forEach(id => {
                         payload.append('categoryIds', id);

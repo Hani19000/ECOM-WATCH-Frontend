@@ -108,10 +108,6 @@ api.interceptors.request.use(
  * 3. Erreur 401 sur /auth/refresh = Refresh token invalide
  *    → Propager l'erreur (éviter la boucle infinie)
  *    → Logout complet nécessaire
- * 
- * CORRECTION vs VERSION ORIGINALE :
- * ❌ Ancien : if (!isCheckoutRequest) → Bloque le refresh pour users connectés
- * ✅ Nouveau : if (_accessToken) → Refresh seulement si on a un token
  */
 api.interceptors.response.use(
     (response) => response,

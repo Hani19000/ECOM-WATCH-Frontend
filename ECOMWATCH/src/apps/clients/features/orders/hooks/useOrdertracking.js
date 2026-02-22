@@ -139,14 +139,7 @@ export const useOrderTracking = (initialOrderId = null) => {
     /**
      * AUTO-LOAD : Se déclenche au montage si un ID est présent.
      *
-     * FIX : La vérification isAuthenticated est faite EN PREMIER.
-     *
-     * ORDRE DE PRIORITÉ (avant fix) :
-     *   1. Cherche dans localStorage → trouve la commande
-     *   2. Lance trackGuestOrder → 404 (user_id IS NOT NULL bloqué par le backend)
-     *   3. Affiche "Commande introuvable"
-     *
-     * ORDRE DE PRIORITÉ (après fix) :
+     * ORDRE DE PRIORITÉ :
      *   1. isAuthenticated ? → trackAuthenticatedOrder (Bearer token)
      *   2. Sinon, cherche dans localStorage → trackGuestOrder
      *

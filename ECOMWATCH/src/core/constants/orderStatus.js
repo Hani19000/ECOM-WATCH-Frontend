@@ -8,17 +8,6 @@
  * - Évite les typos et incohérences
  * - Facilite les changements futurs
  * - Permet la validation TypeScript
- * 
- * UTILISATION :
- * ```js
- * import { ORDER_STATUS, isValidStatus } from './constants/orderStatus.js';
- * 
- * // ✅ Bon
- * order.status = ORDER_STATUS.PROCESSING;
- * 
- * // ❌ Mauvais (risque de typo)
- * order.status = 'PROCESSING';
- * ```
  */
 
 /**
