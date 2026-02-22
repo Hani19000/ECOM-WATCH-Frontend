@@ -60,18 +60,16 @@ export const usePaymentResult = () => {
 
                         setOrderInfo({
                             ...fullOrder,
-                            // Normalisation pour l'affichage
                             totalAmount: fullOrder.totalAmount || 0,
                             items: fullOrder.items || []
                         });
 
                         setStatus('success');
                         sessionStorage.removeItem('h1_pending_order');
-                        return; // Stop polling
+                        return;
 
                     } catch (err) {
                         logger.warn('[usePaymentResult] Order fetch warning, using fallback', err);
-                        // Fallback minimaliste
                         setOrderInfo({ orderNumber: orderId, email, status: 'PAID' });
                         setStatus('success');
                         return;
@@ -88,7 +86,7 @@ export const usePaymentResult = () => {
             } catch (error) {
                 logger.error('[usePaymentResult] Polling error', error);
                 if (error.response?.status === 403 || error.response?.status === 404) {
-                    setStatus('error'); // Erreur fatale
+                    setStatus('error');
                 } else if (attempts < MAX_ATTEMPTS) {
                     timeoutId = setTimeout(checkPaymentStatus, 2000);
                 } else {
@@ -107,34 +105,46 @@ export const usePaymentResult = () => {
 
 /**
  * Hook pour annuler la commande et libérer le stock lors d'une annulation Stripe.
+ *
+ * Déclenchement : page `/checkout/cancel?orderId=<uuid>`
+ *
+ * Cas couverts :
+ * 1. L'utilisateur clique "Annuler" sur la page Stripe → redirection immédiate
+ * 2. L'utilisateur revient via le bouton "Retour" du navigateur depuis Stripe
+ *
+ * Cas NON couverts par ce hook (géré par le webhook Stripe) :
+ * - Fermeture d'onglet sans retour → `checkout.session.expired` après ~30min
+ *
+ * Garantie d'idempotence :
+ * - `hasCalled.current` empêche un double appel en React StrictMode (double-mount)
+ * - Le backend gère lui aussi l'idempotence (commande déjà CANCELLED → no-op)
  */
 export const usePaymentCancel = () => {
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get('orderId');
+
     const hasCalled = useRef(false);
 
     useEffect(() => {
-        // Idempotence : un seul appel même en StrictMode
         if (!orderId || hasCalled.current) return;
         hasCalled.current = true;
 
         const releaseStock = async () => {
             try {
-                // Récupération de l'email depuis sessionStorage (posé par useCheckout)
                 const stored = sessionStorage.getItem('h1_pending_order');
-                const email = stored ? JSON.parse(stored)?.email : null;
+                const email = stored ? JSON.parse(stored)?.email ?? null : null;
 
                 await api.post(`/orders/${orderId}/cancel`, { email });
 
-                // Nettoyage du sessionStorage après annulation confirmée
                 sessionStorage.removeItem('h1_pending_order');
+
                 logger.info(`[usePaymentCancel] Stock libéré — orderId: ${orderId}`);
 
             } catch (error) {
-                // On log sans bloquer l'UX : le webhook Stripe prendra le relais
-                logger.warn('[usePaymentCancel] Libération du stock en attente du webhook Stripe', {
+                logger.warn('[usePaymentCancel] Libération du stock en attente des filets de sécurité', {
                     orderId,
-                    status: error.response?.status,
+                    httpStatus: error.response?.status,
+                    message: error.message,
                 });
             }
         };
