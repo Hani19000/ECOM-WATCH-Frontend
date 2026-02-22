@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useCatalogueLogic } from '../hooks/useCatalogueLogic';
 import ProductGrid from '../../products/components/ProductGrid';
 import ProductFilters from '../components/ProductFilters';
@@ -9,6 +10,14 @@ import { env } from '../../../../../core/config/env';
 
 export default function Catalogue() {
     const { state, data, actions } = useCatalogueLogic();
+
+    // Verrouillage du body lors de l'ouverture du drawer mobile
+    useEffect(() => {
+        document.body.style.overflow = state.isFiltersDrawerOpen ? 'hidden' : 'unset';
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [state.isFiltersDrawerOpen]);
 
     const seoTitle = state.urlSearch
         ? `"${state.urlSearch}" – Montres | ECOM-WATCH`
@@ -61,6 +70,7 @@ export default function Catalogue() {
                 />
 
                 <main className="flex flex-col lg:flex-row gap-8 lg:gap-12 mt-8">
+                    {/* Sidebar Desktop */}
                     <aside className="hidden lg:block w-72 flex-shrink-0" aria-label="Filtres produits">
                         <div className="sticky top-32">
                             <ProductFilters
@@ -78,47 +88,59 @@ export default function Catalogue() {
                         </div>
                     </aside>
 
-                    {state.isFiltersDrawerOpen && (
-                        <div className="lg:hidden fixed inset-0 z-50 flex justify-end overflow-hidden">
-                            <div
-                                className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-                                onClick={() => actions.setIsFiltersDrawerOpen(false)}
-                                aria-hidden="true"
-                            />
-                            <aside className="relative w-[85%] max-w-sm h-full bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-                                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                                    <h2 className="text-sm font-bold uppercase tracking-widest text-gray-900">
-                                        Filtres
-                                    </h2>
-                                    <button
-                                        onClick={() => actions.setIsFiltersDrawerOpen(false)}
-                                        className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
-                                        aria-label="Fermer les filtres"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
+                    {/* * Drawer Mobile (Côté droit avec animation calquée sur CartDrawer)
+                      * Le composant reste dans le DOM pour permettre la transition CSS.
+                      */}
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            className={`lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-opacity duration-500 ${state.isFiltersDrawerOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+                                }`}
+                            onClick={() => actions.setIsFiltersDrawerOpen(false)}
+                            aria-hidden="true"
+                        />
 
-                                <div className="flex-1 overflow-y-auto px-5 py-6 custom-scrollbar">
-                                    <ProductFilters
-                                        filters={{
-                                            search: state.urlSearch,
-                                            category: state.urlCategory,
-                                            minPrice: state.urlMinPrice,
-                                            maxPrice: state.urlMaxPrice,
-                                        }}
-                                        onFilterChange={actions.updateFilters}
-                                        categories={state.categoryTabs.filter(c => c.slug !== 'all')}
-                                        priceRange={{ min: state.dataMinPrice, max: state.dataMaxPrice }}
-                                        priceSegments={state.segments}
-                                        isMobile={true}
-                                    />
-                                </div>
-                            </aside>
-                        </div>
-                    )}
+                        {/* Panel */}
+                        <aside
+                            className={`lg:hidden fixed top-0 right-0 h-full z-[101] 
+                                w-[85%] sm:w-[400px] bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)] 
+                                rounded-l-[30px] sm:rounded-l-none flex flex-col
+                                transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+                                ${state.isFiltersDrawerOpen ? "translate-x-0" : "translate-x-full"}
+                            `}
+                        >
+                            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                                <h2 className="text-sm font-bold uppercase tracking-widest text-gray-900">
+                                    Filtres
+                                </h2>
+                                <button
+                                    onClick={() => actions.setIsFiltersDrawerOpen(false)}
+                                    className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+                                    aria-label="Fermer les filtres"
+                                >
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto px-5 py-6 custom-scrollbar">
+                                <ProductFilters
+                                    filters={{
+                                        search: state.urlSearch,
+                                        category: state.urlCategory,
+                                        minPrice: state.urlMinPrice,
+                                        maxPrice: state.urlMaxPrice,
+                                    }}
+                                    onFilterChange={actions.updateFilters}
+                                    categories={state.categoryTabs.filter(c => c.slug !== 'all')}
+                                    priceRange={{ min: state.dataMinPrice, max: state.dataMaxPrice }}
+                                    priceSegments={state.segments}
+                                    isMobile={true}
+                                />
+                            </div>
+                        </aside>
+                    </>
 
                     <div className="flex-1 min-w-0">
                         <ProductGrid
