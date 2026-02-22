@@ -36,7 +36,6 @@ export const useCatalogueLogic = () => {
         if (newFilters.maxPrice && newFilters.maxPrice < dataMaxPrice) params.maxPrice = newFilters.maxPrice;
 
         setSearchParams(params, { replace: true });
-        setIsFiltersDrawerOpen(false);
     }, [dataMinPrice, dataMaxPrice, setSearchParams]);
 
     const handleCategoryChange = useCallback((slug) => {

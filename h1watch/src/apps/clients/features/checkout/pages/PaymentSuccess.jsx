@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle, ArrowRight, Package } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePaymentResult } from '../hooks/usePaymentResult';
 import { useCart } from '../../cart/hooks/useCart';
 import { CartBackupService } from '../../cart/api/Cartbackup.service';
@@ -11,40 +12,39 @@ import SEOHead from '../../../../../shared/SEO/SEOHead';
 /**
  * Page de confirmation de commande (UI Pure + Orchestration de nettoyage).
  *
- * RÈGLE : GuestOrderService.addOrder ne doit être appelé QUE pour les guests.
- * Un utilisateur connecté a user_id IS NOT NULL en base → l'API guest le
- * rejetterait, et son historique provient de GET /users/me/orders (Bearer token).
+ * FIX STOCK :
+ * Après un paiement réussi, le backend décrémente le stock en base.
+ * Mais React Query conservait en cache les anciennes données produit (staleTime).
+ * Résultat : la fiche produit continuait d'afficher l'ancien stock pendant
+ * plusieurs minutes après l'achat.
  *
- * EXCEPTION INTENTIONNELLE : si un guest passe une commande puis se connecte/
- * s'inscrit avec le même email, le serveur rattache automatiquement la commande
- * via claimedOrderNumbers → GuestOrderService.syncWithClaimed() dans useAuth.
- * Cette logique n'est PAS touchée ici.
+ * queryClient.invalidateQueries() force React Query à considérer toutes les
+ * données ['products'] et ['product'] comme périmées. Au prochain affichage
+ * d'une fiche produit ou du catalogue, une requête fraîche sera émise.
  */
 const PaymentSuccess = () => {
     const { status, orderInfo } = usePaymentResult();
     const { clearCart, setIsDrawerOpen } = useCart();
     const { isAuthenticated } = useAuthStore();
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         if (status === 'success' && orderInfo) {
-            // ── FIX : on ne persiste dans le localStorage guest
-            //         QUE si l'utilisateur n'est pas connecté.
-            //
-            // AVANT : GuestOrderService.addOrder(orderInfo) sans condition
-            //         → les commandes des users connectés apparaissaient dans
-            //           l'historique guest (espace invité du profil).
-            //
-            // APRÈS : seuls les guests voient leur commande persistée localement.
-            //         Les users authentifiés récupèrent leur historique via
-            //         GET /users/me/orders (OrderHistory + useOrders).
+            // Persiste uniquement pour les guests (les users ont leur historique côté serveur)
             if (!isAuthenticated) {
                 GuestOrderService.addOrder(orderInfo);
             }
 
             clearCart();
             CartBackupService.clear();
+
+            // ── FIX STOCK : invalidation du cache React Query ─────────────────
+            // Invalide toutes les requêtes produit pour que le stock s'actualise
+            // dès la prochaine visite d'une fiche produit ou du catalogue.
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['product'] });
         }
-    }, [status, orderInfo, clearCart, isAuthenticated]);
+    }, [status, orderInfo, clearCart, isAuthenticated, queryClient]);
 
     <SEOHead
         title="Commande confirmée | ECOM-WATCH"

@@ -6,10 +6,9 @@ const ProductActions = ({ name = "Produit", variants = [], selectedVariant, onVa
 
     const availableColors = [...new Set(variants.map(v => v.attributes?.color))].filter(Boolean);
     const availableSizes = [...new Set(variants.map(v => v.attributes?.size))].filter(Boolean);
-
     const maxStock = selectedVariant?.inventory?.availableStock
-        || selectedVariant?.inventory?.available_stock
-        || 0;
+        ?? selectedVariant?.inventory?.available_stock
+        ?? 0;
 
     const hasStock = maxStock > 0;
     const displayQuantity = Math.min(quantityInput, maxStock);
@@ -51,9 +50,10 @@ const ProductActions = ({ name = "Produit", variants = [], selectedVariant, onVa
                     <div className="flex flex-wrap gap-3" role="group" aria-label="Choisir une taille">
                         {availableSizes.map(size => {
                             const sizeVariant = variants.find(v => v.attributes?.size === size);
+                            // ✅ FIX : ?? au lieu de ||
                             const sizeStock = sizeVariant?.inventory?.availableStock
-                                || sizeVariant?.inventory?.available_stock
-                                || 0;
+                                ?? sizeVariant?.inventory?.available_stock
+                                ?? 0;
                             const isSelected = selectedVariant?.attributes?.size === size;
                             const isOutOfStock = sizeStock === 0;
 
@@ -109,9 +109,10 @@ const ProductActions = ({ name = "Produit", variants = [], selectedVariant, onVa
                     <div className="flex gap-4" role="group" aria-label="Choisir une finition">
                         {availableColors.map(color => {
                             const colorVariant = variants.find(v => v.attributes?.color === color);
+                            // ✅ FIX : ?? au lieu de ||
                             const colorStock = colorVariant?.inventory?.availableStock
-                                || colorVariant?.inventory?.available_stock
-                                || 0;
+                                ?? colorVariant?.inventory?.available_stock
+                                ?? 0;
                             const isSelected = selectedVariant?.attributes?.color === color;
                             const isOutOfStock = colorStock === 0;
 

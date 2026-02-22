@@ -4,11 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import ProductService from '../api/product.service';
 import { useCart } from '../../cart/hooks/useCart';
 
-/**
- * Hook métier pour la page détail produit.
- * Isole la gestion du cache serveur (React Query), du cache local (URL state) et 
- * l'algorithmique complexe de sélection de la variante par défaut.
- */
 export const useProductDetailLogic = () => {
     const { slug } = useParams();
     const location = useLocation();
@@ -26,6 +21,8 @@ export const useProductDetailLogic = () => {
     const { data: product, isLoading, isError } = useQuery({
         queryKey: ['product', slug],
         queryFn: () => ProductService.getOne(slug),
+        staleTime: 0,
+        refetchOnMount: 'always',
     });
 
     // Moteur de sélection intelligente de la variante
@@ -49,7 +46,7 @@ export const useProductDetailLogic = () => {
 
         // 3. Fallback automatique : Première variante en stock
         if (!selected) {
-            const inStockVariant = variantsList.find(v => (v.inventory?.availableStock || 0) > 0);
+            const inStockVariant = variantsList.find(v => (v.inventory?.availableStock ?? 0) > 0);
             if (inStockVariant) selected = inStockVariant;
         }
 

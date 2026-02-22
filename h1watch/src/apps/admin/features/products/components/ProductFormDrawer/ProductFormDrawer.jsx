@@ -74,7 +74,7 @@ const ProductInfoSection = ({ formData, handleChange, categories }) => (
     </div>
 );
 
-const InitialVariantSection = ({ formData, handleChange, handleImageChange }) => (
+const InitialVariantSection = ({ formData, handleChange, handleImageChange, imageFile }) => (
     <div className="space-y-4 mt-8 bg-gray-50/50 dark:bg-slate-800/30 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-dark-border transition-colors">
         <SectionTitle title="Première Variante (Générée automatiquement)" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -88,8 +88,22 @@ const InitialVariantSection = ({ formData, handleChange, handleImageChange }) =>
         <InputGroup label="Stock Initial" name="initialStock" type="number" value={formData.initialStock} onChange={handleChange} required />
         <div>
             <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5 transition-colors">Image Principale</label>
-            <label className="flex flex-col items-center justify-center w-full h-24 sm:h-28 border-2 border-gray-300 dark:border-dark-border border-dashed rounded-lg cursor-pointer bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
-                <span className="text-xs text-gray-500 dark:text-gray-400">Ajouter une image</span>
+            <label className={`flex flex-col items-center justify-center w-full h-24 sm:h-28 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${imageFile
+                    ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20'
+                    : 'border-gray-300 dark:border-dark-border bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                }`}>
+                <span className="text-xs text-center px-4 truncate w-full">
+                    {imageFile ? (
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex flex-col items-center gap-1">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            {imageFile.name}
+                        </span>
+                    ) : (
+                        <span className="text-gray-500 dark:text-gray-400">Ajouter une image</span>
+                    )}
+                </span>
                 <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
             </label>
         </div>
