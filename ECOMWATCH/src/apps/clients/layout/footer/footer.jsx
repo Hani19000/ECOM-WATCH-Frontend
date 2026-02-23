@@ -122,7 +122,7 @@ const Footer = () => (
                         © {new Date().getFullYear()} Ecom-Watch. Tous droits réservés.
                     </p>
                     <p className="text-center text-[8px] text-[#ADA996]/70 uppercase tracking-[0.2em] font-light">
-                        Projet personnel et fictif — Réalisé à des fins de démonstration technique
+                        Projet personnel et fictif, Réalisé à des fins de démonstration technique
                     </p>
                 </div>
 

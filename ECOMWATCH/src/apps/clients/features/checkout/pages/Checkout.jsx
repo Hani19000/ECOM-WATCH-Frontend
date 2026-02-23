@@ -28,7 +28,7 @@ const DemoDisclaimer = () => (
                 </p>
                 <ul className="space-y-1.5">
                     <DisclaimerLine>
-                        Ce site est un projet personnel et fictif — aucun achat réel ne sera effectué.
+                        Ce site est un projet personnel et fictif donc aucun achat réel ne sera effectué.
                     </DisclaimerLine>
                     <DisclaimerLine>
                         <strong className="text-gray-800 font-semibold">N'utilisez pas vos vraies coordonnées bancaires.</strong>
@@ -37,7 +37,7 @@ const DemoDisclaimer = () => (
                         une date future et n'importe quel CVC.
                     </DisclaimerLine>
                     <DisclaimerLine>
-                        Les confirmations par email sont désactivées — Resend exige un nom de domaine
+                        Les confirmations par email sont désactivées car Resend exige un nom de domaine
                         vérifié qui n'est pas encore configuré sur ce projet.
                     </DisclaimerLine>
                 </ul>
