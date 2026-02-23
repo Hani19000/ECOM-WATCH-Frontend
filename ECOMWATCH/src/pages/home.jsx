@@ -1,33 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import ProductService from '../apps/clients/features/products/api/product.service';
+import { useFeaturedProducts } from '../apps/clients/features/products/hooks/useProducts';
 import ProductGrid from '../apps/clients/features/products/components/ProductGrid';
 import SEOHead from '../shared/SEO/SEOHead';
 import { buildHomeSchema } from '../shared/SEO/seoSchemas';
 import featured from '../../public/images/featured.webp';
 
 const Home = () => {
-    const [products, setProducts] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const { data: products = [], isLoading, isError, error, refetch } = useFeaturedProducts();
+
+    // État local : la sélection de variant ne concerne que cette page
     const [selectedVariants, setSelectedVariants] = useState({});
-
-    const fetchFeatured = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const data = await ProductService.findFeatured();
-            setProducts(data);
-        } catch (err) {
-            setError(err.message || 'Erreur lors de la récupération');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchFeatured();
-    }, []);
 
     const handleVariantChange = (productId, variant) => {
         setSelectedVariants(prev => ({ ...prev, [productId]: variant }));
@@ -35,7 +18,6 @@ const Home = () => {
 
     return (
         <>
-            {/* ─── SEO ───────────────────────────────────────────── */}
             <SEOHead
                 title="ECOM-WATCH – Montres de Prestige | Haute Horlogerie"
                 description="Découvrez notre sélection exclusive de montres de prestige. Haute horlogerie, éditions limitées, authenticité certifiée. Livraison sécurisée en France et en Europe."
@@ -46,16 +28,14 @@ const Home = () => {
                 structuredData={buildHomeSchema(products)}
             />
 
-            {/* ─── Contenu ───────────────────────────────────────── */}
             <div className="flex flex-col gap-8 md:gap-12 max-w-7xl mx-auto px-4 py-6 md:py-8">
-                {/* HERO BANNER */}
+                {/* HERO — visible uniquement sur desktop, préchargé via <link rel="preload"> dans index.html */}
                 <div className="hidden md:block -mx-4 md:mx-0">
                     <div className="relative w-full overflow-hidden md:rounded-[40px] shadow-2xl">
                         <img
                             src={featured}
                             alt="Collection ECOM-WATCH – Montres de prestige et haute horlogerie"
                             className="w-full h-auto block object-cover"
-                            /* Préchargement de l'image héro (LCP) */
                             fetchPriority="high"
                             loading="eager"
                             width="1400"
@@ -64,22 +44,21 @@ const Home = () => {
                     </div>
                 </div>
 
-                {/* SECTION SÉLECTION */}
+                {/* SÉLECTION FEATURED */}
                 <main>
                     <div className="mb-10">
-                        {/* h1 sémantique pour le SEO */}
                         <h1 className="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter italic">
                             La Sélection
                         </h1>
-                        <div className="h-1 w-12 bg-[#ADA996] mt-2"></div>
+                        <div className="h-1 w-12 bg-[#ADA996] mt-2" />
                     </div>
 
                     <ProductGrid
                         products={products}
                         isLoading={isLoading}
-                        isError={!!error}
-                        error={error}
-                        refetch={fetchFeatured}
+                        isError={isError}
+                        error={error?.message}
+                        refetch={refetch}
                         selectedVariants={selectedVariants}
                         onVariantChange={handleVariantChange}
                     />
@@ -103,7 +82,7 @@ const Home = () => {
                                 </svg>
                             </div>
                             <div className="h-px w-full max-w-15 bg-gray-200 overflow-hidden">
-                                <div className="h-full w-full bg-black translate-x-full group-hover:translate-x-[0%] transition-transform duration-500 ease-out"></div>
+                                <div className="h-full w-full bg-black translate-x-full group-hover:translate-x-[0%] transition-transform duration-500 ease-out" />
                             </div>
                             <span className="text-[8px] text-gray-900 font-medium uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                                 {products.length}+ Modèles disponibles

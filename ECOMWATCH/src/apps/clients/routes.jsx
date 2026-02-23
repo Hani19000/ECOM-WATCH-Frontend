@@ -1,17 +1,15 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense } from 'react';
-
-// Layout & Guards
 import { AppLayout } from './layout/AppLayout';
 import GuestGuard from '../../shared/auth/guards/GuestGuard';
 
-// --- LAZY LOADING : MODULES PARTAGÉS (Auth) ---
+// ─── Pages lazy-loadées ───────────────────────────────────────────────────────
+// Chaque page est chargée à la demande pour réduire le bundle initial.
+
 const Login = lazy(() => import('../../shared/auth/pages/Login'));
 const Register = lazy(() => import('../../shared/auth/pages/Register'));
 const ForgotPassword = lazy(() => import('../../shared/auth/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('../../shared/auth/pages/ResetPassword'));
-
-// --- LAZY LOADING : MODULES STOREFRONT ---
 const Home = lazy(() => import('../../pages/home'));
 const Catalogue = lazy(() => import('./features/catalogue/pages/Catalogue'));
 const ProductDetail = lazy(() => import('./features/products/pages/ProductDetail'));
@@ -21,50 +19,61 @@ const PaymentCancel = lazy(() => import('./features/checkout/pages/PaymentCancel
 const ProfilePage = lazy(() => import('./features/user/pages/Profile'));
 const TrackOrderPage = lazy(() => import('./features/orders/pages/TrackOrder'));
 
-const PageLoader = () => <div className="loader">Ecom-Watch...</div>;
+/**
+ * Fallback affiché pendant le chargement d'une page lazy.
+ *
+ * Positionné à l'intérieur de AppLayout pour que la navbar et le footer
+ * restent visibles pendant le chargement — l'utilisateur ne voit jamais
+ * une page blanche ou un texte brut.
+ */
+const PageSkeleton = () => (
+    <div className="flex flex-col gap-6 animate-pulse py-4">
+        <div className="h-8 bg-gray-200 rounded-lg w-48" />
+        <div className="h-px bg-gray-200 w-12" />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }, (_, i) => (
+                <div key={i} className="h-72 bg-gray-200 rounded-2xl" />
+            ))}
+        </div>
+    </div>
+);
+
+// Raccourci : enveloppe une page dans son Suspense avec le skeleton standard.
+// Évite de répéter le même markup sur chaque route.
+const withSuspense = (element) => (
+    <Suspense fallback={<PageSkeleton />}>
+        {element}
+    </Suspense>
+);
 
 /**
- * Définition de la branche Storefront.
- * Exporte un objet Route compatible avec react-router-dom.
+ * Branche Storefront.
+ *
+ * AppLayout est non-lazy : la navbar et le footer sont toujours disponibles
+ * immédiatement. Seul le contenu de la page (Outlet) est lazy-loadé,
+ * ce qui évite le flash de layout complet lors de la navigation.
  */
 export const clientsRoutes = {
     path: '/',
-    element: (
-        <Suspense fallback={<PageLoader />}>
-            <AppLayout />
-        </Suspense>
-    ),
+    element: <AppLayout />,
     children: [
-        { index: true, element: <Home /> },
-        { path: 'home', element: <Home /> },
-        { path: 'catalogue', element: <Catalogue /> },
-        { path: 'product/:slug', element: <ProductDetail /> },
-        { path: 'checkout', element: <Checkout /> },
-        { path: 'checkout/success', element: <PaymentSuccess /> },
-        { path: 'checkout/cancel', element: <PaymentCancel /> },
-        { path: 'profile', element: <ProfilePage /> },
-        { path: 'track-order', element: <TrackOrderPage /> },
+        { index: true, element: withSuspense(<Home />) },
+        { path: 'home', element: withSuspense(<Home />) },
+        { path: 'catalogue', element: withSuspense(<Catalogue />) },
+        { path: 'product/:slug', element: withSuspense(<ProductDetail />) },
+        { path: 'checkout', element: withSuspense(<Checkout />) },
+        { path: 'checkout/success', element: withSuspense(<PaymentSuccess />) },
+        { path: 'checkout/cancel', element: withSuspense(<PaymentCancel />) },
+        { path: 'profile', element: withSuspense(<ProfilePage />) },
+        { path: 'track-order', element: withSuspense(<TrackOrderPage />) },
 
-        // ─── Auth (accès public, bloqué si déjà connecté) ─────────────────
-        {
-            path: 'login',
-            element: <GuestGuard><Login /></GuestGuard>,
-        },
-        {
-            path: 'register',
-            element: <GuestGuard><Register /></GuestGuard>,
-        },
+        // Auth — accessible uniquement si non connecté
+        { path: 'login', element: <GuestGuard>{withSuspense(<Login />)}</GuestGuard> },
+        { path: 'register', element: <GuestGuard>{withSuspense(<Register />)}</GuestGuard> },
 
-        // ─── Réinitialisation mot de passe (toujours public) ──────────────
-        // Pas de GuestGuard : un utilisateur connecté peut aussi avoir besoin
-        // de consommer un lien reçu par email sur un autre appareil.
-        {
-            path: 'forgot-password',
-            element: <ForgotPassword />,
-        },
-        {
-            path: 'reset-password',
-            element: <ResetPassword />,
-        },
-    ]
+        // Réinitialisation mot de passe — toujours public
+        // (un utilisateur connecté peut recevoir un lien sur un autre appareil)
+        { path: 'forgot-password', element: withSuspense(<ForgotPassword />) },
+        { path: 'reset-password', element: withSuspense(<ResetPassword />) },
+    ],
 };
