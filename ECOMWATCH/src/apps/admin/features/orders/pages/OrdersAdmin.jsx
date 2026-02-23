@@ -70,6 +70,8 @@ const OrdersAdmin = () => {
                             onViewDetails={handleOpenOrderDetails}
                         />
                     )}
+                    paginationData={state.paginationData}
+                    onPageChange={actions.handlePageChange}
                 />
             </div>
 

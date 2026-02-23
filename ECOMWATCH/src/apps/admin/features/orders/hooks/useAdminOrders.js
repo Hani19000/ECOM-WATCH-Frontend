@@ -21,14 +21,22 @@ export const useAdminOrders = () => {
     const fetchOrders = useCallback(async () => {
         setIsLoadingData(true);
         try {
-            const result = await AdminOrderService.getAll({
-                page: paginationData.page,
-                limit: 10,
+
+            const filters = {
                 search: debouncedSearchQuery,
                 status: selectedStatusFilter
-            });
-            setOrdersList(result.orders);
-            setPaginationData(previousState => ({ ...previousState, ...result.pagination }));
+            };
+
+            const result = await AdminOrderService.getAllOrders(
+                filters,
+                paginationData.page,
+                10
+            );
+
+            setOrdersList(result.data?.orders || []);
+            if (result.data?.pagination) {
+                setPaginationData(previousState => ({ ...previousState, ...result.data.pagination }));
+            }
         } catch {
             toast.error('Impossible de charger la liste des commandes.');
             setOrdersList([]);
