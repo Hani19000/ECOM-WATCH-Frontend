@@ -1,17 +1,8 @@
 import { Link } from "react-router-dom";
 import { FOOTER_NAV, FOOTER_LEGAL, PAYMENT_METHODS } from "./Footer.constants";
 
-/**
- * ACCESSIBILITÉ :
- * - FooterNavColumn : h4 remplacé par p (évite heading hors-séquence — Lighthouse #1)
- * - Copyright : text-gray-500 → text-gray-300 (ratio 10:1 sur fond #1A1A19 — Lighthouse #2)
- * - Liens légaux / nav : aria-label sur les <nav> pour les lecteurs d'écran
- */
-
 const FooterNavColumn = ({ title, links }) => (
     <div className="flex flex-col gap-5">
-        {/* AVANT : <h4> orphelin sans h2/h3 parent → Lighthouse "Heading order"
-            APRÈS : <p> avec même style visuel, rôle sémantique neutre */}
         <p className="text-[9px] font-bold uppercase tracking-[0.35em] text-[#ADA996]">
             {title}
         </p>
@@ -125,11 +116,16 @@ const Footer = () => (
                     </div>
                 </div>
 
-                {/* AVANT : text-gray-500 → ratio ~3.8:1 sur fond sombre (ÉCHEC WCAG AA)
-                    APRÈS : text-gray-300 → ratio ~10:1 (CONFORME) */}
-                <p className="mt-6 text-center text-[9px] text-gray-300 uppercase tracking-[0.3em]">
-                    © {new Date().getFullYear()} Ecom-Watch. Tous droits réservés.
-                </p>
+                {/* Zone de Copyright et Disclaimer */}
+                <div className="mt-8 flex flex-col items-center gap-2">
+                    <p className="text-center text-[9px] text-gray-300 uppercase tracking-[0.3em]">
+                        © {new Date().getFullYear()} Ecom-Watch. Tous droits réservés.
+                    </p>
+                    <p className="text-center text-[8px] text-[#ADA996]/70 uppercase tracking-[0.2em] font-light">
+                        Projet personnel et fictif — Réalisé à des fins de démonstration technique
+                    </p>
+                </div>
+
             </div>
         </div>
     </footer>
