@@ -1,85 +1,56 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useCart } from './useCart';
 import { CartBackupService } from '../api/Cartbackup.service';
 
 /**
- * 
- * @param {Object} options - Configuration
- * @param {boolean} options.autoRestore - Active la restauration auto (défaut: true)
- * @param {Function} options.onRestored - Callback après restauration
- * @returns {Object} { isRestoring, restoredCount, hasBackup, restore, clearBackup }
+ * Gère la restauration du panier après un paiement annulé ou échoué.
+ *
+ * @param {Object}   options
+ * @param {boolean}  options.autoRestore - Active la restauration automatique au montage (défaut: true)
+ * @param {Function} options.onRestored  - Callback appelé avec les items restaurés
  */
-export const useCartRestore = ({
-    autoRestore = true,
-    onRestored = null
-} = {}) => {
+export const useCartRestore = ({ autoRestore = true, onRestored = null } = {}) => {
     const { restoreCart } = useCart();
 
     const [isRestoring, setIsRestoring] = useState(false);
     const [restoredCount, setRestoredCount] = useState(0);
+
+    // Évalué une seule fois : le backup ne change pas entre deux renders
     const [hasBackup] = useState(() => CartBackupService.hasBackup());
 
-    /**
-     * Restaure le panier depuis le backup.
-     * 
-     * SIMPLE ET PROPRE : Utilise restoreCart pour remplacer tout le panier
-     * 
-     * @returns {number} Nombre d'articles restaurés
-     */
-    const restore = () => {
+    // Memoïsé pour pouvoir être listé sans risque dans les dépendances useEffect
+    const restore = useCallback(() => {
         setIsRestoring(true);
         setRestoredCount(0);
 
         try {
             const restoredItems = CartBackupService.restore();
 
-            if (restoredItems && restoredItems.length > 0) {
-                // Restauration via la fonction exposée du provider
-                restoreCart(restoredItems);
-                setRestoredCount(restoredItems.length);
+            if (!restoredItems?.length) return 0;
 
-                // Callback optionnel
-                if (onRestored) {
-                    onRestored(restoredItems);
-                }
+            restoreCart(restoredItems);
+            setRestoredCount(restoredItems.length);
+            onRestored?.(restoredItems);
 
-                return restoredItems.length;
-            }
-
-            return 0;
-
+            return restoredItems.length;
         } catch {
             return 0;
-
         } finally {
             setIsRestoring(false);
         }
-    };
+    }, [restoreCart, onRestored]);
 
-    /**
-     * Supprime le backup sans restaurer.
-     * Utile si l'utilisateur veut repartir à zéro.
-     */
-    const clearBackup = () => {
+    const clearBackup = useCallback(() => {
         CartBackupService.clear();
         setRestoredCount(0);
-    };
+    }, []);
 
-    // ================================================================
-    // Restauration automatique au montage du composant
-    // ================================================================
+    // Restauration automatique unique au montage, conditionnée à la présence d'un backup
     useEffect(() => {
         if (autoRestore && hasBackup) {
             restore();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Exécution unique au montage
+    }, [autoRestore, hasBackup, restore]);
 
-    return {
-        isRestoring,
-        restoredCount,
-        hasBackup,
-        restore,
-        clearBackup,
-    };
+    return { isRestoring, restoredCount, hasBackup, restore, clearBackup };
 };
