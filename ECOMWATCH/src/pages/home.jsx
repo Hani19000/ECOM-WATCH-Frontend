@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useProducts } from '../apps/clients/features/products/hooks/useProducts'
+import { useFeaturedProducts } from '../apps/clients/features/products/hooks/useProducts';
 import ProductGrid from '../apps/clients/features/products/components/ProductGrid';
 import SEOHead from '../shared/SEO/SEOHead';
 import { buildHomeSchema } from '../shared/SEO/seoSchemas';
 import featured from '../../public/images/featured.webp';
 
 const Home = () => {
-    const { data: products = [], isLoading, isError, error, refetch } = useProducts();
+    // Uniquement les 4 produits featured — ProductService.findFeatured applique
+    // le filtre isFeatured=true et la limite côté serveur.
+    const { data: products = [], isLoading, isError, error, refetch } = useFeaturedProducts();
 
     // État local : la sélection de variant ne concerne que cette page
     const [selectedVariants, setSelectedVariants] = useState({});
@@ -53,6 +55,11 @@ const Home = () => {
                         <div className="h-1 w-12 bg-[#ADA996] mt-2" />
                     </div>
 
+                    {/*
+                        prioritizeFirstCard : signale à ProductGrid que la première carte
+                        est l'élément LCP — elle recevra fetchPriority="high" + loading="eager"
+                        sur son image pour satisfaire l'audit Lighthouse.
+                    */}
                     <ProductGrid
                         products={products}
                         isLoading={isLoading}
@@ -61,6 +68,7 @@ const Home = () => {
                         refetch={refetch}
                         selectedVariants={selectedVariants}
                         onVariantChange={handleVariantChange}
+                        prioritizeFirstCard
                     />
 
                     <div className="flex justify-center mt-16 mb-8">
