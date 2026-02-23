@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useFeaturedProducts } from '../apps/clients/features/products/hooks/useProducts';
+import { useProducts } from '../apps/clients/features/products/hooks/useProducts'
 import ProductGrid from '../apps/clients/features/products/components/ProductGrid';
 import SEOHead from '../shared/SEO/SEOHead';
 import { buildHomeSchema } from '../shared/SEO/seoSchemas';
 import featured from '../../public/images/featured.webp';
 
 const Home = () => {
-    const { data: products = [], isLoading, isError, error, refetch } = useFeaturedProducts();
+    const { data: products = [], isLoading, isError, error, refetch } = useProducts();
 
     // État local : la sélection de variant ne concerne que cette page
     const [selectedVariants, setSelectedVariants] = useState({});
