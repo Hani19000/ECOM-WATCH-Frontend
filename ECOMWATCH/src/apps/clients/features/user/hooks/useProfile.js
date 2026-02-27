@@ -5,7 +5,7 @@ import logger from '../../../../../core/utils/logger';
 import toast from 'react-hot-toast';
 
 export const useProfile = () => {
-    const { isAuthenticated } = useAuthStore();
+    const { isAuthenticated, isInitialized } = useAuthStore();
     const [changingPassword, setChangingPassword] = useState(false);
     const [profile, setProfile] = useState(null);
     const [stats, setStats] = useState({ totalOrders: 0, pendingOrders: 0, totalSpent: 0 });
@@ -14,7 +14,8 @@ export const useProfile = () => {
     const [error, setError] = useState(null);
 
     const fetchProfile = useCallback(async () => {
-        if (!isAuthenticated) {
+        // ← Guard : attendre que checkAuth ait terminé ET que l'user soit connecté
+        if (!isAuthenticated || !isInitialized) {
             setLoading(false);
             return;
         }
@@ -47,7 +48,7 @@ export const useProfile = () => {
         } finally {
             setLoading(false);
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, isInitialized]);
 
     const updateProfile = useCallback(async (updates) => {
         if (!isAuthenticated) return;
@@ -111,15 +112,33 @@ export const useProfile = () => {
         }
     }, [isAuthenticated]);
 
+    // ← Fetch principal : se déclenche uniquement quand checkAuth est terminé
+    // et que l'état d'auth est connu.
+    // - isAuthenticated && isInitialized  → fetch le profil
+    // - !isAuthenticated                  → reset (déconnexion)
+    // - isAuthenticated && !isInitialized → attente silencieuse (checkAuth en cours)
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && isInitialized) {
             fetchProfile();
-        } else {
+        } else if (!isAuthenticated) {
             setProfile(null);
             setStats({ totalOrders: 0, pendingOrders: 0, totalSpent: 0 });
             setLoading(false);
         }
-    }, [isAuthenticated, fetchProfile]);
+    }, [isAuthenticated, isInitialized, fetchProfile]);
+
+    // ← Écoute l'event custom dispatché par useAuth après sync des commandes guest.
+    // Permet à useAuth de demander un refetch sans importer useProfile (évite le couplage).
+    useEffect(() => {
+        const handleRefresh = () => {
+            if (isAuthenticated && isInitialized) {
+                fetchProfile();
+            }
+        };
+
+        window.addEventListener('profile:refresh', handleRefresh);
+        return () => window.removeEventListener('profile:refresh', handleRefresh);
+    }, [fetchProfile, isAuthenticated, isInitialized]);
 
     return {
         profile, stats, loading, updating, changingPassword, error,

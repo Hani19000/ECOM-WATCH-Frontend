@@ -2,16 +2,14 @@ import { useCallback } from 'react';
 import { useAuthStore } from './useAuthStore';
 import { authService } from '../api/auth.service';
 import { setAccessToken, clearAccessToken } from '../../../api/axios.config';
-import { useProfile } from '../../../apps/clients/features/user/hooks/useProfile';
 import { GuestOrderService } from '../../../apps/clients/features/orders/api/GuestOrder.service';
 import logger from '../../../core/utils/logger';
 
 export const useAuth = () => {
     const { user, isAuthenticated, isInitialized, setInitialized, setUser, logout: clearStore } = useAuthStore();
-    const { refetch } = useProfile();
 
     // Rattache les commandes invité existantes au compte et purge le localStorage guest.
-    // Séparé pour que register et login restent lisibles.
+    // Découplé de useProfile via CustomEvent pour éviter toute dépendance circulaire.
     const syncGuestOrders = useCallback((result) => {
         if (result.claimedOrderNumbers?.length > 0) {
             const { purged } = GuestOrderService.syncWithClaimed(result.claimedOrderNumbers);
@@ -21,11 +19,13 @@ export const useAuth = () => {
             logger.debug(`[useAuth] localStorage guest vidé (${result.claimedOrders} commande(s) rattachée(s))`);
         }
 
-        // Déclenché légèrement après pour laisser le temps au backend de persister
+        // Demande à useProfile de se rafraîchir sans l'importer directement
         if (result.claimedOrders > 0) {
-            setTimeout(() => refetch(), 1000);
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('profile:refresh'));
+            }, 1000);
         }
-    }, [refetch]);
+    }, []); // ← Stable : aucune dépendance externe
 
     const register = useCallback(async (userData) => {
         const result = await authService.register(userData);
@@ -52,6 +52,9 @@ export const useAuth = () => {
         }
     }, [clearStore]);
 
+    // [] est intentionnel : setUser et setInitialized sont des fonctions Zustand,
+    // leur référence est stable par nature (créées une seule fois à l'init du store).
+    // Les mettre en deps recréerait checkAuth à chaque update du store → boucle infinie.
     const checkAuth = useCallback(async () => {
         try {
             const data = await authService.refresh();
@@ -66,7 +69,7 @@ export const useAuth = () => {
         } finally {
             setInitialized(true);
         }
-    }, [setUser, setInitialized]);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return { user, isAuthenticated, isInitialized, register, login, logout, checkAuth };
 };
