@@ -51,14 +51,6 @@ export const useCheckout = () => {
     const [shippingOptions, setShippingOptions] = useState([]);
     const [selectedShippingMethod, setSelectedShippingMethod] = useState('STANDARD');
 
-    const [pricing, setPricing] = useState({
-        subtotal: 0,
-        shipping: { cost: 0, isFree: false, method: 'STANDARD', estimatedDays: '2-3' },
-        tax: { amount: 0, rate: 20 },
-        total: 0,
-        currency: 'EUR'
-    });
-
     const cartWeight = useMemo(() => checkoutService.calculateTotalWeight(cart), [cart]);
 
     const handleInputChange = useCallback((e) => {
@@ -96,6 +88,23 @@ export const useCheckout = () => {
             currency: 'EUR'
         };
     }, [cart, cartWeight, formData.country, selectedShippingMethod, activeTaxRate]);
+
+    /**
+     * Correction de la boucle infinie (React Error #185)
+     * Remplacement du useState + useEffect par useMemo.
+     * Le pricing est recalculé uniquement quand calculatePricingLocally change.
+     */
+    const pricing = useMemo(() => {
+        const computedPricing = calculatePricingLocally();
+
+        return computedPricing || {
+            subtotal: 0,
+            shipping: { cost: 0, isFree: false, method: 'STANDARD', estimatedDays: '2-3' },
+            tax: { amount: 0, rate: 20 },
+            total: 0,
+            currency: 'EUR'
+        };
+    }, [calculatePricingLocally]);
 
     useEffect(() => {
         const updateTax = async () => {
@@ -149,11 +158,6 @@ export const useCheckout = () => {
         loadOptions();
         return () => { isMounted = false; };
     }, [formData.country, cart.length, cartWeight, cartTotal]);
-
-    useEffect(() => {
-        const newPricing = calculatePricingLocally();
-        if (newPricing) setPricing(newPricing);
-    }, [calculatePricingLocally]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
