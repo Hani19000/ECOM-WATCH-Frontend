@@ -34,9 +34,12 @@ export const checkoutService = {
             return response.data.data.options;
         } catch (error) {
             if (error.response?.status === 401) {
-                logger.debug("Route shipping protégée. Basculement silencieux en mode Guest.");
+                // Route protégée : user guest ou token expiré
+                // On retourne null → useCheckout bascule sur le calcul local
+                logger.debug('[Shipping] Route protégée, fallback local activé.');
+                return null; // ← Ne plus throw
             }
-            throw error;
+            throw error; // Propager seulement les vraies erreurs (500, réseau, etc.)
         }
     },
 

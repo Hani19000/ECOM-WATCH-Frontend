@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useCart } from '../../cart/hooks/useCart';
+import { useAuthStore } from '../../../../../shared/auth/hooks/useAuthStore';
 import { checkoutService } from '../api/checkout.service';
 import { CartBackupService } from '../../cart/api/Cartbackup.service';
 import logger from '../../../../../core/utils/logger';
@@ -38,6 +39,8 @@ const COUNTRY_TO_ZONE = {
  */
 export const useCheckout = () => {
     const { cart, totalPrice: cartTotal } = useCart();
+    const { isAuthenticated } = useAuthStore(); // ← Au niveau supérieur du hook
+
     const [loading, setLoading] = useState(false);
     const [loadingPricing, setLoadingPricing] = useState(false);
     const [activeTaxRate, setActiveTaxRate] = useState(20);
@@ -90,14 +93,12 @@ export const useCheckout = () => {
     }, [cart, cartWeight, formData.country, selectedShippingMethod, activeTaxRate]);
 
     /**
-     * Correction de la boucle infinie (React Error #185)
-     * Remplacement du useState + useEffect par useMemo.
-     * Le pricing est recalculé uniquement quand calculatePricingLocally change.
+     * Pricing calculé localement via useMemo.
+     * Évite le useState + useEffect qui créait une boucle infinie (React Error #185).
+     * Recalculé uniquement quand les dépendances changent.
      */
     const pricing = useMemo(() => {
-        const computedPricing = calculatePricingLocally();
-
-        return computedPricing || {
+        return calculatePricingLocally() || {
             subtotal: 0,
             shipping: { cost: 0, isFree: false, method: 'STANDARD', estimatedDays: '2-3' },
             tax: { amount: 0, rate: 20 },
@@ -106,6 +107,7 @@ export const useCheckout = () => {
         };
     }, [calculatePricingLocally]);
 
+    // ── Mise à jour du taux de taxe selon le pays ─────────────────────────────
     useEffect(() => {
         const updateTax = async () => {
             const localTaxDefaults = { 'France': 20, 'Belgium': 21, 'Germany': 19, 'Spain': 21, 'Italy': 22 };
@@ -115,6 +117,10 @@ export const useCheckout = () => {
         updateTax();
     }, [formData.country]);
 
+    // ── Chargement des options de livraison ───────────────────────────────────
+    // Stratégie :
+    // - User connecté → tente l'API (peut avoir des tarifs personnalisés)
+    // - Guest OU API inaccessible → fallback sur les règles locales
     useEffect(() => {
         let isMounted = true;
 
@@ -122,23 +128,26 @@ export const useCheckout = () => {
             if (cart.length === 0) return;
             setLoadingPricing(true);
 
-            try {
-                const options = await checkoutService.fetchShippingOptions(formData.country, cartWeight, cartTotal);
-                if (isMounted && options && options.length > 0) {
-                    setShippingOptions(options);
-                    setLoadingPricing(false);
-                    return;
-                }
-            } catch (error) {
-                if (error.response?.status !== 401) {
-                    logger.debug("API Shipping inaccessible, passage en mode local.", error);
+            // Appel API uniquement si connecté — évite le 401 pour les guests
+            if (isAuthenticated) {
+                try {
+                    const options = await checkoutService.fetchShippingOptions(
+                        formData.country, cartWeight, cartTotal
+                    );
+                    if (isMounted && options && options.length > 0) {
+                        setShippingOptions(options);
+                        setLoadingPricing(false);
+                        return;
+                    }
+                } catch (error) {
+                    logger.debug('[Shipping] API inaccessible, passage en mode local.', error);
                 }
             }
 
+            // Fallback local : guests ou API indisponible
             if (isMounted) {
                 const zoneKey = COUNTRY_TO_ZONE[formData.country] || 'WORLD';
                 const rules = SHIPPING_RULES[zoneKey] || SHIPPING_RULES.FRANCE;
-
                 const computedOptions = rules.map(rule => {
                     const isFree = rule.freeAbove && cartTotal >= rule.freeAbove;
                     return {
@@ -146,10 +155,9 @@ export const useCheckout = () => {
                         label: rule.label,
                         cost: isFree ? 0 : rule.base + (rule.perKg * cartWeight),
                         estimatedDays: rule.days,
-                        isFree: isFree
+                        isFree,
                     };
                 });
-
                 setShippingOptions(computedOptions);
                 setLoadingPricing(false);
             }
@@ -157,8 +165,10 @@ export const useCheckout = () => {
 
         loadOptions();
         return () => { isMounted = false; };
-    }, [formData.country, cart.length, cartWeight, cartTotal]);
+    }, [formData.country, cart.length, cartWeight, cartTotal, isAuthenticated]);
+    //                                                         ↑ ajouté aux deps
 
+    // ── Soumission de la commande ─────────────────────────────────────────────
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
