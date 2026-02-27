@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Clock, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useCartRestore } from '../../cart/hooks/useCartRestore';
@@ -57,11 +57,15 @@ const PaymentCancel = () => {
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get('orderId');
 
+    // 1. On fige la fonction de callback pour éviter la boucle infinie (React Error #185)
+    const handleRestored = useCallback((items) => {
+        toast.success(`Panier restauré — ${items.length} article${items.length > 1 ? 's' : ''} récupéré${items.length > 1 ? 's' : ''}`);
+    }, []);
+
+    // 2. On passe la fonction mémorisée
     const { isRestoring } = useCartRestore({
         autoRestore: true,
-        onRestored: (items) => {
-            toast.success(`Panier restauré — ${items.length} article${items.length > 1 ? 's' : ''} récupéré${items.length > 1 ? 's' : ''}`);
-        },
+        onRestored: handleRestored,
     });
 
     return (
