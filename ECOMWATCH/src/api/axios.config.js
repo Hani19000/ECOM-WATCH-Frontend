@@ -195,7 +195,7 @@ api.interceptors.response.use(
                  * Pourquoi :
                  * - axios.config.js est un module technique
                  * - La redirection est une décision métier
-                 * - Laisse le composant gérer (ProtectedRoute, useAuth, etc.)
+                 * - Laisse le composant gérer (ProtectedRoute, useAuth, etc..)
                  */
 
                 return Promise.reject(refreshError);
