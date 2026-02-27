@@ -2,30 +2,29 @@ import { useCallback } from 'react';
 import { useAuthStore } from './useAuthStore';
 import { authService } from '../api/auth.service';
 import { setAccessToken, clearAccessToken } from '../../../api/axios.config';
-import { useProfile } from '../../../apps/clients/features/user/hooks/useProfile';
 import { GuestOrderService } from '../../../apps/clients/features/orders/api/GuestOrder.service';
 import logger from '../../../core/utils/logger';
 
 export const useAuth = () => {
     const { user, isAuthenticated, isInitialized, setInitialized, setUser, logout: clearStore } = useAuthStore();
-    const { refetch } = useProfile();
 
     // Rattache les commandes invité existantes au compte et purge le localStorage guest.
     // Séparé pour que register et login restent lisibles.
     const syncGuestOrders = useCallback((result) => {
         if (result.claimedOrderNumbers?.length > 0) {
             const { purged } = GuestOrderService.syncWithClaimed(result.claimedOrderNumbers);
-            logger.debug(`[useAuth] ${purged} commande(s) guest synchronisée(s) après connexion`);
+            logger.debug(`[useAuth] ${purged} commande(s) guest synchronisée(s)`);
         } else if (result.claimedOrders > 0) {
             GuestOrderService.clearAll();
-            logger.debug(`[useAuth] localStorage guest vidé (${result.claimedOrders} commande(s) rattachée(s))`);
+            logger.debug(`[useAuth] localStorage guest vidé`);
         }
 
-        // Déclenché légèrement après pour laisser le temps au backend de persister
         if (result.claimedOrders > 0) {
-            setTimeout(() => refetch(), 1000);
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('profile:refresh')); // ← event custom
+            }, 1000);
         }
-    }, [refetch]);
+    }, []);
 
     const register = useCallback(async (userData) => {
         const result = await authService.register(userData);

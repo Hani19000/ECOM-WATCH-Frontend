@@ -5,7 +5,7 @@ import logger from '../../../../../core/utils/logger';
 import toast from 'react-hot-toast';
 
 export const useProfile = () => {
-    const { isAuthenticated } = useAuthStore();
+    const { isAuthenticated, isInitialized } = useAuthStore();
     const [changingPassword, setChangingPassword] = useState(false);
     const [profile, setProfile] = useState(null);
     const [stats, setStats] = useState({ totalOrders: 0, pendingOrders: 0, totalSpent: 0 });
@@ -14,7 +14,7 @@ export const useProfile = () => {
     const [error, setError] = useState(null);
 
     const fetchProfile = useCallback(async () => {
-        if (!isAuthenticated) {
+        if (!isAuthenticated || !isInitialized) {
             setLoading(false);
             return;
         }
@@ -47,7 +47,7 @@ export const useProfile = () => {
         } finally {
             setLoading(false);
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, isInitialized]);
 
     const updateProfile = useCallback(async (updates) => {
         if (!isAuthenticated) return;
@@ -112,14 +112,24 @@ export const useProfile = () => {
     }, [isAuthenticated]);
 
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && isInitialized) {
             fetchProfile();
         } else {
             setProfile(null);
             setStats({ totalOrders: 0, pendingOrders: 0, totalSpent: 0 });
             setLoading(false);
         }
-    }, [isAuthenticated, fetchProfile]);
+    }, [isAuthenticated, isInitialized, fetchProfile]);
+
+    useEffect(() => {
+        if (isAuthenticated && isInitialized) {
+            fetchProfile();
+        } else if (!isAuthenticated) {
+            setProfile(null);
+            setStats({ totalOrders: 0, pendingOrders: 0, totalSpent: 0 });
+            setLoading(false);
+        }
+    }, [isAuthenticated, isInitialized, fetchProfile]);
 
     return {
         profile, stats, loading, updating, changingPassword, error,
